@@ -2,9 +2,10 @@ package cmd
 
 import (
     "fmt"
+    "os"
 
     "github.com/spf13/cobra"
-    //"github.com/charmbracelet/huh"
+    "github.com/charmbracelet/huh"
 
     //"github.com/valet-sh/valet-sh-updater/internal/git"
     //"github.com/valet-sh/valet-sh-updater/internal/runtime"
@@ -24,10 +25,45 @@ var (
 )
 
 func init() {
-	updateCmd.Flags().StringVarP(&branchFlag, "branch", "b", "", "Branch to use (stable or next)")
+    updateCmd.Flags().StringVarP(&branchFlag, "branch", "b", "", "Branch to use (stable or next)")
 }
 
 func runUpdate() error {
-    fmt.Println("Checking for updates...")
+    branch, err := determineBranch()
+    if err != nil {
+     return err
+    }
+    fmt.Println("Updating valet-sh to the latest version on the " + branch + " branch")
     return nil
+}
+
+func determineBranch() (string, error) {
+    if branchFlag == "next" || branchFlag == "stable" {
+        return branchFlag, nil
+    }
+
+    _, err := os.Stat("/usr/local/valet-sh/etc/ENABLE_NEXT")
+    if err == nil {
+        return "next", nil
+    }
+
+    var selectedBranch string
+    form := huh.NewForm(
+        huh.NewGroup(
+            huh.NewSelect[string]().
+                Title("Select branch to update from").
+                Options(
+                    huh.NewOption("Stable (production use)", "stable"),
+                    huh.NewOption("Next (development use)", "next"),
+                ).
+                Value(&selectedBranch),
+        ),
+    )
+
+    err = form.Run()
+    if err != nil {
+        return "stable", err
+    }
+
+    return selectedBranch, nil
 }
