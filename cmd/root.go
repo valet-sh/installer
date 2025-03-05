@@ -5,7 +5,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-    Use:   "valet-sh-updater",
+    Use:   "valet-sh-installer",
     Short: "A CLI tool to update Valet-sh",
     Long: `A CLI tool to update Valet-sh`,
 }
@@ -15,5 +15,7 @@ func Execute() error {
 }
 
 func init() {
+    rootCmd.AddCommand(setChannelCmd)
     rootCmd.AddCommand(updateCmd)
+    rootCmd.AddCommand(selfUpgradeCmd)
 }

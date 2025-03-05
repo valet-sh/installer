@@ -3,13 +3,13 @@ package cmd
 import (
     "fmt"
     "os"
+    "path/filepath"
 
     "github.com/spf13/cobra"
-    "github.com/charmbracelet/huh"
 
-    "github.com/valet-sh/valet-sh-updater/constants"
-    "github.com/valet-sh/valet-sh-updater/internal/git"
-    "github.com/valet-sh/valet-sh-updater/internal/runtime"
+    "github.com/valet-sh/valet-sh-installer/constants"
+    "github.com/valet-sh/valet-sh-installer/internal/git"
+    "github.com/valet-sh/valet-sh-installer/internal/runtime"
 )
 
 var updateCmd = &cobra.Command{
@@ -22,64 +22,30 @@ var updateCmd = &cobra.Command{
     },
 }
 
-var (
-    branchFlag string
-)
-
 func init() {
-    updateCmd.Flags().StringVarP(&branchFlag, "branch", "b", "", "Branch to use (stable or next)")
 }
 
 func runUpdate() error {
-    branch, err := determineBranch()
-    if err != nil {
-     return err
-    }
-
     repoPath := constants.ValetBasePath
+
     if err := checkIfRepoExists(repoPath); err != nil {
         return err
     }
 
-    if branch == "next" {
+    nextChannelEnabled := false
+    enableNextFilePath := filepath.Join(constants.ValetEtcPath, constants.NextBranchFile)
+
+    if _, err := os.Stat(enableNextFilePath); err == nil {
+        nextChannelEnabled = true
+    }
+
+    if nextChannelEnabled {
+        fmt.Println("Using next channel (development) for update")
         return updateNextBranch(repoPath)
     } else {
-        return nil
+        fmt.Println("Using stable channel for update")
+        return updateStableBranch(repoPath)
     }
-
-    fmt.Println("Just a test - branch:", branch)
-    return nil
-}
-
-func determineBranch() (string, error) {
-    if branchFlag == "next" || branchFlag == "stable" {
-        return branchFlag, nil
-    }
-
-    _, err := os.Stat(constants.NextBranchFile)
-    if err == nil {
-        return "next", nil
-    }
-
-    var selectedBranch string
-    form := huh.NewForm(
-        huh.NewGroup(
-            huh.NewSelect[string]().
-                Title("Select branch to update from").
-                Options(
-                    huh.NewOption("Stable (production use)", "stable"),
-                    huh.NewOption("Next (development use)", "next"),
-                ).
-                Value(&selectedBranch),
-        ),
-    )
-
-    err = form.Run()
-    if err != nil {
-        return "stable", err
-    }
-
-    return selectedBranch, nil
 }
 
 func checkIfRepoExists(repoPath string) error {
@@ -101,4 +67,9 @@ func updateNextBranch(repoPath string) error {
         return fmt.Errorf("Failed to pull latest changes: %w", err)
     }
     return runtime.CheckRuntime()
+}
+
+func updateStableBranch(repoPath string) error {
+    fmt.Println("Updating valet-sh to the latest version on the stable branch")
+    return nil
 }

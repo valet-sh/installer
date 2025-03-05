@@ -1,15 +1,13 @@
 package main
 
 import (
-    "fmt"
     "os"
 
-    "github.com/valet-sh/valet-sh-updater/cmd"
+    "github.com/valet-sh/valet-sh-installer/cmd"
 )
 
 func main() {
     if err := cmd.Execute(); err != nil {
-        fmt.Println(err)
         os.Exit(1)
     }
 }

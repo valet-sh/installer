@@ -1,6 +1,6 @@
-module github.com/valet-sh/valet-sh-updater
+module github.com/valet-sh/valet-sh-installer
 
-go 1.21
+go 1.22
 
 toolchain go1.22.2
 
