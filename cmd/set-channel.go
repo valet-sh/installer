@@ -2,6 +2,8 @@ package cmd
 
 import (
     "fmt"
+    "os"
+    "path/filepath"
 
     "github.com/spf13/cobra"
     "github.com/charmbracelet/huh"
@@ -72,12 +74,58 @@ func processBranchSelection(branch string) error {
     }
 }
 
+func ensureEtcDirectoryExists() error {
+    if _, err := os.Stat(constants.ValetEtcPath); os.IsNotExist(err) {
+        err := os.MkdirAll(constants.ValetEtcPath, 0755)
+        if err != nil {
+            return fmt.Errorf("failed to create etc directory: %w", err)
+        }
+    }
+    return nil
+}
+
 func useStableChannel() error {
-    fmt.Println("Using stable channel")
+    fmt.Println("Switching to stable channel")
+
+    if err := ensureEtcDirectoryExists(); err != nil {
+        return err
+    }
+
+    enableNextFilePath := filepath.Join(constants.ValetEtcPath, constants.NextBranchFile)
+    if _, err := os.Stat(enableNextFilePath); err == nil {
+        fmt.Println("Removing next channel file")
+        err := os.Remove(enableNextFilePath)
+        if err != nil {
+            return fmt.Errorf("failed to disable next channel: %w", err)
+        }
+        fmt.Println("Successfully switched to stable channel")
+    } else {
+        fmt.Println("Already on stable channel")
+    }
+
     return nil
 }
 
 func useNextChannel() error {
-    fmt.Println("Using next channel")
+    fmt.Println("Switching to next channel")
+
+    if err := ensureEtcDirectoryExists(); err != nil {
+        return err
+    }
+
+    enableNextFilePath := filepath.Join(constants.ValetEtcPath, constants.NextBranchFile)
+    if _, err := os.Stat(enableNextFilePath); os.IsNotExist(err) {
+        fmt.Println("Creating next channel file")
+        _, err := os.Create(enableNextFilePath)
+        if err != nil {
+            return fmt.Errorf("failed to enable next channel: %w", err)
+        }
+        fmt.Println("Successfully switched to next channel")
+    } else if err != nil {
+        return fmt.Errorf("error checking next channel file: %w", err)
+    } else {
+        fmt.Println("Already on next channel")
+    }
+
     return nil
 }
