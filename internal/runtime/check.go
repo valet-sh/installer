@@ -11,7 +11,14 @@ import (
     "github.com/valet-sh/valet-sh-installer/constants"
 )
 
-func CheckRuntime() error {
+type RuntimeStatus struct {
+    NeedsUpdate     bool
+    CurrentVersion  string
+    TargetVersion   string
+    PackageName     string
+}
+
+func CheckRuntime() (*RuntimeStatus, error) {
     fmt.Println("Checking runtime")
 
     runtimePath := filepath.Join(constants.ValetBasePath, constants.RuntimeFileName)
@@ -21,9 +28,9 @@ func CheckRuntime() error {
         fmt.Printf("Check if '%s' exists\n", path)
         if _, err := os.Stat(path); err != nil {
             if os.IsNotExist(err) {
-                return fmt.Errorf("file %s does not exist", path)
+                return nil, fmt.Errorf("file %s does not exist", path)
             }
-            return fmt.Errorf("error checking file %s: %w", path, err)
+            return nil, fmt.Errorf("error checking file %s: %w", path, err)
         }
     }
 
@@ -31,50 +38,44 @@ func CheckRuntime() error {
 
     installedRuntimeVersion, err := os.ReadFile(runtimePath)
     if err != nil {
-        return fmt.Errorf("failed to read installed runtime version: %w", err)
+        return nil, fmt.Errorf("failed to read installed runtime version: %w", err)
     }
 
     targetRuntimeVersion, err := os.ReadFile(versionPath)
     if err != nil {
-        return fmt.Errorf("failed to read target runtime version: %w", err)
+        return nil, fmt.Errorf("failed to read target runtime version: %w", err)
     }
-
 
     osName, osCodename, err := CheckOSVersion()
     if err != nil {
-        return err
+        return nil, err
     }
 
     arch := getArchitecture()
+    packageName := BuildPackageName(osName, osCodename, arch)
 
-    var installed_runtime_specific_version string
-    var target_runtime_specific_version string
-
-    if osName == "ubuntu" {
-        target_runtime_specific_version = (strings.ToLower(osName) + "_" + strings.ToLower(osCodename) + "-" + string(arch))
-    } else {
-        target_runtime_specific_version = (strings.ToLower(osName) + "-" + string(arch))
+    status := &RuntimeStatus{
+        CurrentVersion: strings.TrimSpace(string(installedRuntimeVersion)),
+        TargetVersion:  strings.TrimSpace(string(targetRuntimeVersion)),
+        PackageName:    packageName,
+        NeedsUpdate:    strings.TrimSpace(string(installedRuntimeVersion)) != strings.TrimSpace(string(targetRuntimeVersion)),
     }
 
-    fmt.Printf("valet-sh: Runtime version: %s\n", installedRuntimeVersion)
-    fmt.Printf("valet-sh-venv: Runtime Version: %s\n", targetRuntimeVersion)
-
-
+    fmt.Printf("valet-sh: Runtime version: %s\n", status.CurrentVersion)
+    fmt.Printf("valet-sh-venv: Runtime Version: %s\n", status.TargetVersion)
     fmt.Printf("OS: %s\n", osName)
     fmt.Printf("Codename: %s\n", osCodename)
     fmt.Printf("Architecture: %s\n", arch)
-    fmt.Printf("Package Name: %s\n", installed_runtime_specific_version)
-    fmt.Printf("Target Package Name: %s\n", target_runtime_specific_version)
+    fmt.Printf("Package Name: %s\n", status.PackageName)
 
-    if string(installedRuntimeVersion) != string(targetRuntimeVersion) {
+    if status.NeedsUpdate {
         fmt.Println("\nVenv runtime version is different from the installed runtime version\n")
-        fmt.Printf("- new runtime version: %s is required\n", installedRuntimeVersion)
-        return UpdateRuntime(string(installedRuntimeVersion))
+        fmt.Printf("- new runtime version: %s is required\n", status.CurrentVersion)
+    } else {
+        fmt.Println("Runtime version is up to date")
     }
 
-    fmt.Println("Runtime version is up to date")
-
-    return nil
+    return status, nil
 }
 
 func getArchitecture() string {
@@ -164,8 +165,9 @@ func parseOSRelease() (osInfo, error) {
     return info, nil
 }
 
-func UpdateRuntime(targetRuntimeVersion string) error {
-    fmt.Printf("Updating runtime to version %s\n", targetRuntimeVersion)
-
-    return nil
+func BuildPackageName(osName, osCodename, arch string) string {
+    if osName == "ubuntu" {
+        return strings.ToLower(osName) + "_" + strings.ToLower(osCodename) + "-" + string(arch)
+    }
+    return strings.ToLower(osName) + "-" + string(arch)
 }
