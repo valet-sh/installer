@@ -5,6 +5,7 @@ import (
     "os"
     "path/filepath"
     "net/http"
+    "strings"
 
     "github.com/spf13/cobra"
 
@@ -152,5 +153,51 @@ func updateNextBranch(repoPath string) error {
 
 func updateStableBranch(repoPath string) error {
     fmt.Println("Updating valet-sh to the latest version on the stable branch")
+
+    if err := git.FetchTags(repoPath); err != nil {
+        return fmt.Errorf("Failed to fetch tags: %w", err)
+    }
+
+    currentRelease, err := git.GetCurrentReleaseTag(repoPath)
+    if err != nil {
+        return fmt.Errorf("Failed to get current release: %w", err)
+    }
+
+    tags, err := git.GetAllTags(repoPath)
+    if err != nil {
+        return fmt.Errorf("Failed to get all tags: %w", err)
+    }
+
+    if len(tags) == 0 {
+        return fmt.Errorf("No valid releases found")
+    }
+
+    semverRegex := `^(2)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(\-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$`
+    validVersions := git.FilterTagsSemver(tags, semverRegex)
+    
+    if len(validVersions) == 0 {
+        return fmt.Errorf("No valid releases found")
+    }
+
+    latestVersion := validVersions[0]
+    latestTag := latestVersion
+    if !strings.HasPrefix(tags[0], "v") && strings.HasPrefix(latestVersion, "v") {
+        latestTag = latestVersion[1:]
+    }
+
+    fmt.Printf("Latest version available: %s | current: %s\n", latestTag, currentRelease)
+
+    compareResult := utils.CompareVersions(currentRelease, latestTag)
+
+    if compareResult < 0 {
+        fmt.Printf("Updating valet-sh from version %s to %s\n", currentRelease, latestTag)
+        if err := git.CheckoutBranch(repoPath, latestTag); err != nil {
+            return fmt.Errorf("Failed to checkout version %s: %w", latestTag, err)
+        }
+        fmt.Printf("valet-sh successfully updated to version %s\n", latestTag)
+    } else {
+        fmt.Printf("Already on latest version %s\n", currentRelease)
+    }
+
     return nil
 }
