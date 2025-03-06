@@ -7,6 +7,7 @@ toolchain go1.22.2
 require (
 	github.com/charmbracelet/huh v0.6.0
 	github.com/spf13/cobra v1.9.1
+	golang.org/x/mod v0.17.0
 )
 
 require (
