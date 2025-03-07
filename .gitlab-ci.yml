@@ -1,0 +1,54 @@
+stages:
+  - build
+
+stages:
+  - build
+
+variables:
+  APP_NAME: "valet-sh-installer"
+  GO_VERSION: "1.22"
+
+.build_template: &build_template
+  stage: build
+  image: golang:${GO_VERSION}
+  script:
+    - mkdir -p build
+    - go mod download
+    - go build -o build/${APP_NAME}-${TARGET_OS}-${TARGET_ARCH} -ldflags="-s -w" -v
+  artifacts:
+    paths:
+      - build/${APP_NAME}-${TARGET_OS}-${TARGET_ARCH}
+    expire_in: 1 week
+
+build:linux-amd64:
+  <<: *build_template
+  variables:
+    GOOS: linux
+    GOARCH: amd64
+    TARGET_OS: linux
+    TARGET_ARCH: amd64
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
+
+build:macos-amd64:
+  <<: *build_template
+  variables:
+    GOOS: darwin
+    GOARCH: amd64
+    TARGET_OS: macos
+    TARGET_ARCH: x86_64
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
+
+build:macos-arm64:
+  <<: *build_template
+  variables:
+    GOOS: darwin
+    GOARCH: arm64
+    TARGET_OS: macos
+    TARGET_ARCH: arm64
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
