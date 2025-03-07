@@ -19,16 +19,15 @@ var setChannelCmd = &cobra.Command{
     Long: `Set the channel to update from`,
     SilenceUsage: true,
     RunE: func(cmd *cobra.Command, args []string) error {
+        if len(args) == 1 {
+            return processBranchSelection(args[0])
+        }
         return setChannel()
     },
 }
 
-var (
-    branchFlag string
-)
-
 func init() {
-    setChannelCmd.Flags().StringVarP(&branchFlag, "branch", "b", "", "Branch to use (stable or next)")
+    rootCmd.AddCommand(setChannelCmd)
 }
 
 func setChannel() error {
@@ -36,10 +35,6 @@ func setChannel() error {
 
     if err := checkIfRepoExists(repoPath); err != nil {
         return err
-    }
-
-    if branchFlag != "" {
-        return processBranchSelection(branchFlag)
     }
 
     var selectedBranch string
