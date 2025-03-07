@@ -36,16 +36,19 @@ func setReleaseChannel() error {
         return err
     }
 
-    var selectedBranch string
+    var selectedReleaseChannel string
+    currentReleaseChannel := getCurrentReleaseChannel()
+    fmt.Printf("Current release channel: %s\n", currentReleaseChannel)
     form := huh.NewForm(
         huh.NewGroup(
             huh.NewSelect[string]().
-                Title("Select branch to update from").
+                Title("Select release channel to update from").
                 Options(
-                    huh.NewOption("Stable (production use)", "stable"),
-                    huh.NewOption("Next (development use)", "next"),
+                    currentMarker("2.x (stable)", "2.x", currentReleaseChannel),
+                    currentMarker("3.x (preview)", "3.x", currentReleaseChannel),
+                    currentMarker("next (development)", "next", currentReleaseChannel),
                 ).
-                Value(&selectedBranch),
+                Value(&selectedReleaseChannel),
         ),
     )
 
@@ -54,18 +57,36 @@ func setReleaseChannel() error {
         return err
     }
 
-    return processBranchSelection(selectedBranch)
+    return processBranchSelection(selectedReleaseChannel)
 }
 
 func processBranchSelection(branch string) error {
     switch branch {
-    case "stable":
+    case "2.x":
         return useStableChannel()
     case "next":
         return useNextChannel()
+    case "3.x":
+        return usePreviewChannel()
     default:
         return fmt.Errorf("invalid branch: %s, must be 'stable' or 'next'", branch)
     }
+}
+
+func currentMarker(label, value, currentReleaseChannel string) huh.Option[string] {
+    if value == currentReleaseChannel {
+        return huh.NewOption(label+" - current", value)
+    }
+    return huh.NewOption(label, value)
+}
+
+func getCurrentReleaseChannel() string {
+    releaseChannelFilePath := filepath.Join(constants.ValetEtcPath, constants.ReleaseChannelFile)
+    releaseChannel, err := os.ReadFile(releaseChannelFilePath)
+    if err != nil {
+        return "stable"
+    }
+    return string(releaseChannel)
 }
 
 func ensureEtcDirectoryExists() error {
@@ -78,6 +99,7 @@ func ensureEtcDirectoryExists() error {
     return nil
 }
 
+
 func useStableChannel() error {
     fmt.Println("Switching to stable channel")
 
@@ -85,17 +107,29 @@ func useStableChannel() error {
         return err
     }
 
-    enableNextFilePath := filepath.Join(constants.ValetEtcPath, constants.NextBranchFile)
-    if _, err := os.Stat(enableNextFilePath); err == nil {
-        fmt.Println("Removing next channel file")
-        err := os.Remove(enableNextFilePath)
-        if err != nil {
-            return fmt.Errorf("failed to disable next channel: %w", err)
-        }
-        fmt.Println("Successfully switched to stable channel")
-    } else {
-        fmt.Println("Already on stable channel")
+    releaseChannelFilePath := filepath.Join(constants.ValetEtcPath, constants.ReleaseChannelFile)
+    err := os.WriteFile(releaseChannelFilePath, []byte("2.x"), 0644)
+    if err != nil {
+        return fmt.Errorf("failed to switch to stable channel: %w", err)
     }
+    fmt.Println("Successfully switched to stable channel")
+
+    return runUpdate()
+}
+
+func usePreviewChannel() error {
+    fmt.Println("Switching to preview channel")
+
+    if err := ensureEtcDirectoryExists(); err != nil {
+        return err
+    }
+
+    releaseChannelFilePath := filepath.Join(constants.ValetEtcPath, constants.ReleaseChannelFile)
+    err := os.WriteFile(releaseChannelFilePath, []byte("3.x"), 0644)
+    if err != nil {
+        return fmt.Errorf("failed to switch to preview channel: %w", err)
+    }
+    fmt.Println("Successfully switched to preview channel")
 
     return runUpdate()
 }
@@ -107,19 +141,12 @@ func useNextChannel() error {
         return err
     }
 
-    enableNextFilePath := filepath.Join(constants.ValetEtcPath, constants.NextBranchFile)
-    if _, err := os.Stat(enableNextFilePath); os.IsNotExist(err) {
-        fmt.Println("Creating next channel file")
-        _, err := os.Create(enableNextFilePath)
-        if err != nil {
-            return fmt.Errorf("failed to enable next channel: %w", err)
-        }
-        fmt.Println("Successfully switched to next channel")
-    } else if err != nil {
-        return fmt.Errorf("error checking next channel file: %w", err)
-    } else {
-        fmt.Println("Already on next channel")
+    releaseChannelFilePath := filepath.Join(constants.ValetEtcPath, constants.ReleaseChannelFile)
+    err := os.WriteFile(releaseChannelFilePath, []byte("next"), 0644)
+    if err != nil {
+        return fmt.Errorf("failed to switch to next channel: %w", err)
     }
+    fmt.Println("Successfully switched to next channel")
 
     return runUpdate()
 }
