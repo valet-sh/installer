@@ -94,7 +94,8 @@ func updateStableBranch(repoPath string) error {
         return fmt.Errorf("No valid releases found")
     }
 
-    semverRegex := `^(2)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(\-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$`
+    majorVersion := constants.ValetMajorVersion
+    semverRegex := fmt.Sprintf(`^(%s)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(\-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$`, majorVersion)
     validVersions := git.FilterTagsSemver(tags, semverRegex)
 
     if len(validVersions) == 0 {
@@ -130,11 +131,11 @@ func runtimeUpdate() error {
         return fmt.Errorf("Failed to check runtime: %w", err)
     }
 
-    if status.NeedsUpdate {
+    if status.NeedsUpdate || status.PackageChanged {
         fmt.Printf("Updating valet-sh to version %s\n", status.CurrentVersion)
         fmt.Println("Updating runtime")
 
-        url := fmt.Sprintf("https://github.com/valet-sh/runtime/releases/download/%s/%s.tar.gz", status.TargetVersion, status.PackageName)
+        url := fmt.Sprintf("https://github.com/valet-sh/runtime/releases/download/%s/%s.tar.gz", status.TargetVersion, status.CurrentPackage)
 
         fmt.Printf("Check if runtime release '%s' exists\n", url)
         resp, err := http.Head(url)
@@ -187,8 +188,9 @@ func runtimeUpdate() error {
             return fmt.Errorf("failed to extract runtime: %w", err)
         }
 
+        venvVersion := status.CurrentPackage + "-" + status.CurrentVersion
         err = os.WriteFile(filepath.Join(constants.ValetVenvPath, constants.VersionFileName),
-            []byte(status.CurrentVersion), 0644)
+            []byte(venvVersion), 0644)
         if err != nil {
             return fmt.Errorf("failed to update version file: %w", err)
         }
