@@ -19,8 +19,8 @@ func preflightChecks(cmd *cobra.Command, args []string) error {
         return prechecks.CheckForEtcDirectory()
     }
 
-    if err := prechecks.CheckForValetMajorReleaseFile(); err != nil {
-        return prechecks.CheckForValetMajorReleaseFile()
+    if err := prechecks.CheckForValetReleaseChannelFile(); err != nil {
+        return prechecks.CheckForValetReleaseChannelFile()
     }
 
     return nil
