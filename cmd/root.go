@@ -38,8 +38,8 @@ func Execute() error {
 }
 
 func init() {
-    rootCmd.AddCommand(setChannelCmd)
-    rootCmd.AddCommand(installCmd)
+    rootCmd.AddCommand(setReleaseChannelCmd)
+    rootCmd.AddCommand(setupCmd)
     rootCmd.AddCommand(updateCmd)
     rootCmd.AddCommand(selfUpgradeCmd)
 }
