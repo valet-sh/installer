@@ -98,7 +98,7 @@ func useStableChannel() error {
         fmt.Println("Already on stable channel")
     }
 
-    return nil
+    return runUpdate()
 }
 
 func useNextChannel() error {
@@ -122,5 +122,5 @@ func useNextChannel() error {
         fmt.Println("Already on next channel")
     }
 
-    return nil
+    return runUpdate()
 }
