@@ -4,6 +4,7 @@ import (
     "fmt"
     "os"
     "path/filepath"
+    "strings"
 
     "github.com/spf13/cobra"
     "github.com/charmbracelet/huh"
@@ -84,9 +85,9 @@ func getCurrentReleaseChannel() string {
     releaseChannelFilePath := filepath.Join(constants.ValetEtcPath, constants.ReleaseChannelFile)
     releaseChannel, err := os.ReadFile(releaseChannelFilePath)
     if err != nil {
-        return "stable"
+        return "2.x"
     }
-    return string(releaseChannel)
+    return strings.TrimSpace(string(releaseChannel))
 }
 
 func ensureEtcDirectoryExists() error {
