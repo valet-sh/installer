@@ -24,6 +24,7 @@ func Execute() error {
 
 func init() {
     rootCmd.AddCommand(setChannelCmd)
+    rootCmd.AddCommand(installCmd)
     rootCmd.AddCommand(updateCmd)
     rootCmd.AddCommand(selfUpgradeCmd)
 }
