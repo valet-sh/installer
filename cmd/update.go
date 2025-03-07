@@ -38,15 +38,17 @@ func runUpdate() error {
     releaseChannel := getCurrentReleaseChannel()
 
     switch releaseChannel {
-    case "next":
-        fmt.Println("Using next channel (development) for update")
-        return updateNextBranch(repoPath)
+    case "2.x":
+        fmt.Println("Using stable channel (2.x) for update")
+        return updateStableBranch(repoPath)
     case "3.x":
         fmt.Println("Using preview channel (3.x) for update")
         return nil
+    case "next":
+        fmt.Println("Using next channel (development) for update")
+        return updateNextBranch(repoPath)
     default:
-        fmt.Println("Using stable channel (2.x) for update")
-        return updateStableBranch(repoPath)
+        return fmt.Errorf("Invalid release channel: %s", releaseChannel)
     }
 }
 
