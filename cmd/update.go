@@ -35,18 +35,17 @@ func runUpdate() error {
         return err
     }
 
-    nextChannelEnabled := false
-    enableNextFilePath := filepath.Join(constants.ValetEtcPath, constants.NextBranchFile)
+    releaseChannel := getCurrentReleaseChannel()
 
-    if _, err := os.Stat(enableNextFilePath); err == nil {
-        nextChannelEnabled = true
-    }
-
-    if nextChannelEnabled {
+    switch releaseChannel {
+    case "next":
         fmt.Println("Using next channel (development) for update")
         return updateNextBranch(repoPath)
-    } else {
-        fmt.Println("Using stable channel for update")
+    case "3.x":
+        fmt.Println("Using preview channel (3.x) for update")
+        return nil
+    default:
+        fmt.Println("Using stable channel (2.x) for update")
         return updateStableBranch(repoPath)
     }
 }
@@ -94,7 +93,7 @@ func updateStableBranch(repoPath string) error {
         return fmt.Errorf("No valid releases found")
     }
 
-    majorVersion := constants.ValetMajorVersion
+    majorVersion := strings.Split(currentRelease, ".")[0]
     semverRegex := fmt.Sprintf(`^(%s)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(\-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$`, majorVersion)
     validVersions := git.FilterTagsSemver(tags, semverRegex)
 
