@@ -13,8 +13,10 @@ import (
 
 type RuntimeStatus struct {
     NeedsUpdate     bool
+    PackageChanged  bool
     CurrentVersion  string
     TargetVersion   string
+    CurrentPackage  string
     PackageName     string
 }
 
@@ -54,11 +56,19 @@ func CheckRuntime() (*RuntimeStatus, error) {
     arch := getArchitecture()
     packageName := BuildPackageName(osName, osCodename, arch)
 
+    currentVersion := strings.TrimSpace(string(installedRuntimeVersion))
+
+    targetParts := strings.Split(strings.TrimSpace(string(targetRuntimeVersion)), "-")
+    targetVersion := targetParts[len(targetParts)-1]
+    targetPackage := strings.Join(targetParts[:len(targetParts)-1], "-")
+
     status := &RuntimeStatus{
-        CurrentVersion: strings.TrimSpace(string(installedRuntimeVersion)),
-        TargetVersion:  strings.TrimSpace(string(targetRuntimeVersion)),
-        PackageName:    packageName,
-        NeedsUpdate:    strings.TrimSpace(string(installedRuntimeVersion)) != strings.TrimSpace(string(targetRuntimeVersion)),
+        CurrentVersion:  currentVersion,
+        TargetVersion:   targetVersion,
+        CurrentPackage:  packageName,
+        PackageName:     targetPackage,
+        NeedsUpdate:     currentVersion != targetVersion,
+        PackageChanged:  packageName != targetPackage,
     }
 
     fmt.Printf("valet-sh: Runtime version: %s\n", status.CurrentVersion)
@@ -66,13 +76,21 @@ func CheckRuntime() (*RuntimeStatus, error) {
     fmt.Printf("OS: %s\n", osName)
     fmt.Printf("Codename: %s\n", osCodename)
     fmt.Printf("Architecture: %s\n", arch)
-    fmt.Printf("Package Name: %s\n", status.PackageName)
+    fmt.Printf("Current Package: %s\n", status.CurrentPackage)
+    fmt.Printf("Target Package: %s\n", status.PackageName)
 
-    if status.NeedsUpdate {
-        fmt.Println("\nVenv runtime version is different from the installed runtime version\n")
-        fmt.Printf("- new runtime version: %s is required\n", status.CurrentVersion)
+    if status.NeedsUpdate && status.PackageChanged {
+        fmt.Println("\nBoth runtime version and package need to be updated")
+        fmt.Printf("Version update from %s to %s and package change from %s to %s required\n",
+            status.CurrentVersion, status.TargetVersion, status.CurrentPackage, status.PackageName)
+    } else if status.NeedsUpdate {
+        fmt.Println("\nVenv runtime version is different from the installed runtime version")
+        fmt.Printf("New runtime version %s is required\n", status.TargetVersion)
+    } else if status.PackageChanged {
+        fmt.Println("\nRuntime package needs to be updated")
+        fmt.Printf("Package change from %s to %s is required\n", status.PackageName, status.CurrentPackage)
     } else {
-        fmt.Println("Runtime version is up to date")
+        fmt.Println("Runtime version and package are up to date")
     }
 
     return status, nil
