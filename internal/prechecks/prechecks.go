@@ -27,19 +27,19 @@ func CheckForEtcDirectory() error {
     return nil
 }
 
-func CheckForValetMajorReleaseFile() error {
-    majorReleaseFilePath := filepath.Join(constants.ValetEtcPath, constants.MajorReleaseFile)
+func CheckForValetReleaseChannelFile() error {
+    ReleaseChannelFilePath := filepath.Join(constants.ValetEtcPath, constants.ReleaseChannelFile)
 
-    _, err := os.Stat(majorReleaseFilePath)
+    _, err := os.Stat(ReleaseChannelFilePath)
     if os.IsNotExist(err) {
-        _, err := os.Create(majorReleaseFilePath)
+        _, err := os.Create(ReleaseChannelFilePath)
         if err != nil {
-            return fmt.Errorf("failed to create major release file: %w", err)
+            return fmt.Errorf("failed to create release channel file: %w", err)
         }
-        majorVersion := constants.ValetMajorVersion
-        err = os.WriteFile(majorReleaseFilePath, []byte(majorVersion), 0644)
+        releaseChannelStableVersion := constants.ValetStableVersion
+        err = os.WriteFile(ReleaseChannelFilePath, []byte(releaseChannelStableVersion), 0644)
         if err != nil {
-            return fmt.Errorf("failed to write major release file: %w", err)
+            return fmt.Errorf("failed to write release channel file: %w", err)
         }
     }
 
