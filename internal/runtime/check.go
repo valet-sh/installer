@@ -82,7 +82,7 @@ func CheckRuntime() (*RuntimeStatus, error) {
     if status.NeedsUpdate && status.PackageChanged {
         fmt.Println("\nBoth runtime version and package need to be updated")
         fmt.Printf("Version update from %s to %s and package change from %s to %s required\n",
-            status.CurrentVersion, status.TargetVersion, status.CurrentPackage, status.PackageName)
+            status.TargetVersion, status.CurrentVersion, status.PackageName, status.CurrentPackage)
     } else if status.NeedsUpdate {
         fmt.Println("\nVenv runtime version is different from the installed runtime version")
         fmt.Printf("New runtime version %s is required\n", status.TargetVersion)
