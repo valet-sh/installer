@@ -23,8 +23,8 @@ type RuntimeStatus struct {
 func CheckRuntime() (*RuntimeStatus, error) {
     fmt.Println("Checking runtime")
 
-    runtimePath := filepath.Join(constants.ValetBasePath, constants.RuntimeFileName)
-    versionPath := filepath.Join(constants.ValetVenvPath, constants.VersionFileName)
+    runtimePath := filepath.Join(constants.VshBasePath, constants.RuntimeFileName)
+    versionPath := filepath.Join(constants.VshVenvPath, constants.VersionFileName)
 
     for _, path := range []string{runtimePath, versionPath} {
         fmt.Printf("Check if '%s' exists\n", path)
@@ -53,7 +53,7 @@ func CheckRuntime() (*RuntimeStatus, error) {
         return nil, err
     }
 
-    arch := getArchitecture()
+    arch := GetArchitecture()
     packageName := BuildPackageName(osName, osCodename, arch)
 
     currentVersion := strings.TrimSpace(string(installedRuntimeVersion))
@@ -85,7 +85,7 @@ func CheckRuntime() (*RuntimeStatus, error) {
             status.TargetVersion, status.CurrentVersion, status.PackageName, status.CurrentPackage)
     } else if status.NeedsUpdate {
         fmt.Println("\nVenv runtime version is different from the installed runtime version")
-        fmt.Printf("New runtime version %s is required\n", status.TargetVersion)
+        fmt.Printf("New runtime version %s is required\n", status.CurrentVersion)
     } else if status.PackageChanged {
         fmt.Println("\nRuntime package needs to be updated")
         fmt.Printf("Package change from %s to %s is required\n", status.PackageName, status.CurrentPackage)
@@ -96,7 +96,7 @@ func CheckRuntime() (*RuntimeStatus, error) {
     return status, nil
 }
 
-func getArchitecture() string {
+func GetArchitecture() string {
     arch := runtime.GOARCH
 
     archMapping := map[string]string{
