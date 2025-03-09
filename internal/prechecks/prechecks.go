@@ -9,7 +9,7 @@ import (
 )
 
 func CheckForValet() error {
-    _, err := os.Stat(constants.ValetPath)
+    _, err := os.Stat(constants.VshPath)
     if os.IsNotExist(err) {
         return fmt.Errorf("Valet-sh does not exists, please run `valet-sh-installer install first`")
     }
@@ -18,8 +18,8 @@ func CheckForValet() error {
 }
 
 func CheckForEtcDirectory() error {
-    if _, err := os.Stat(constants.ValetEtcPath); os.IsNotExist(err) {
-        err := os.MkdirAll(constants.ValetEtcPath, 0755)
+    if _, err := os.Stat(constants.VshEtcPath); os.IsNotExist(err) {
+        err := os.MkdirAll(constants.VshEtcPath, 0755)
         if err != nil {
             return fmt.Errorf("failed to create etc directory: %w", err)
         }
@@ -28,7 +28,7 @@ func CheckForEtcDirectory() error {
 }
 
 func CheckForValetReleaseChannelFile() error {
-    ReleaseChannelFilePath := filepath.Join(constants.ValetEtcPath, constants.ReleaseChannelFile)
+    ReleaseChannelFilePath := filepath.Join(constants.VshEtcPath, constants.ReleaseChannelFile)
 
     _, err := os.Stat(ReleaseChannelFilePath)
     if os.IsNotExist(err) {
@@ -44,4 +44,12 @@ func CheckForValetReleaseChannelFile() error {
     }
 
     return nil
+}
+
+func GetCurrentUser() (string, error) {
+    currentUser := os.Getenv("USER")
+    if currentUser == "" {
+        return "", fmt.Errorf("failed to get current user")
+    }
+    return currentUser, nil
 }
