@@ -76,3 +76,19 @@ func GetAllTags(dir string) ([]string, error) {
 func CompareReleases(current, latest string) bool {
     return semver.Compare(current, latest) < 0
 }
+
+func CloneRepository(repoUrl, repoPath string) error {
+    cmd := exec.Command("git", "clone", "--quiet", repoUrl, repoPath)
+    return cmd.Run()
+}
+
+func DoesBranchExist(repoPath, branchName string) (bool, error) {
+    cmd := exec.Command("git", "branch", "--list", "--all", branchName)
+    cmd.Dir = repoPath
+    output, err := cmd.Output()
+    if err != nil {
+        return false, err
+    }
+
+    return len(strings.TrimSpace(string(output))) > 0, nil
+}
