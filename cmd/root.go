@@ -1,15 +1,15 @@
 package cmd
 
 import (
-    "fmt"
-
     "github.com/spf13/cobra"
 
     "github.com/valet-sh/valet-sh-installer/internal/prechecks"
 )
 
 func preflightChecks(cmd *cobra.Command, args []string) error {
-    fmt.Println("Running preflight checks now after root command")
+    if cmd.Name() == "setup" || cmd.Name() == "self-upgrade" {
+        return nil
+    }
 
     if err := prechecks.CheckForValet(); err != nil {
         return err
@@ -30,7 +30,11 @@ var rootCmd = &cobra.Command{
     Use:   "valet-sh-installer",
     Short: "A CLI tool to update Valet-sh",
     Long: `A CLI tool to update Valet-sh`,
-    PersistentPreRunE: preflightChecks,
+    Version: "0.0.1",
+    SilenceErrors: true,
+    PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+        return preflightChecks(cmd, args)
+    },
 }
 
 func Execute() error {
