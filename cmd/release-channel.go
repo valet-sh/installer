@@ -10,8 +10,6 @@ import (
     "github.com/charmbracelet/huh"
 
     "github.com/valet-sh/valet-sh-installer/constants"
-    // "github.com/valet-sh/valet-sh-installer/internal/git"
-    // "github.com/valet-sh/valet-sh-installer/internal/runtime"
 )
 
 var setReleaseChannelCmd= &cobra.Command{
@@ -31,7 +29,7 @@ func init() {
 }
 
 func setReleaseChannel() error {
-    repoPath := constants.ValetBasePath
+    repoPath := constants.VshBasePath
 
     if err := checkIfRepoExists(repoPath); err != nil {
         return err
@@ -82,7 +80,7 @@ func currentMarker(label, value, currentReleaseChannel string) huh.Option[string
 }
 
 func getCurrentReleaseChannel() string {
-    releaseChannelFilePath := filepath.Join(constants.ValetEtcPath, constants.ReleaseChannelFile)
+    releaseChannelFilePath := filepath.Join(constants.VshEtcPath, constants.ReleaseChannelFile)
     releaseChannel, err := os.ReadFile(releaseChannelFilePath)
     if err != nil {
         return "2.x"
@@ -91,8 +89,8 @@ func getCurrentReleaseChannel() string {
 }
 
 func ensureEtcDirectoryExists() error {
-    if _, err := os.Stat(constants.ValetEtcPath); os.IsNotExist(err) {
-        err := os.MkdirAll(constants.ValetEtcPath, 0755)
+    if _, err := os.Stat(constants.VshEtcPath); os.IsNotExist(err) {
+        err := os.MkdirAll(constants.VshEtcPath, 0755)
         if err != nil {
             return fmt.Errorf("failed to create etc directory: %w", err)
         }
@@ -108,7 +106,7 @@ func useStableChannel() error {
         return err
     }
 
-    releaseChannelFilePath := filepath.Join(constants.ValetEtcPath, constants.ReleaseChannelFile)
+    releaseChannelFilePath := filepath.Join(constants.VshEtcPath, constants.ReleaseChannelFile)
     err := os.WriteFile(releaseChannelFilePath, []byte("2.x"), 0644)
     if err != nil {
         return fmt.Errorf("failed to switch to stable channel: %w", err)
@@ -125,7 +123,7 @@ func usePreviewChannel() error {
         return err
     }
 
-    releaseChannelFilePath := filepath.Join(constants.ValetEtcPath, constants.ReleaseChannelFile)
+    releaseChannelFilePath := filepath.Join(constants.VshEtcPath, constants.ReleaseChannelFile)
     err := os.WriteFile(releaseChannelFilePath, []byte("3.x"), 0644)
     if err != nil {
         return fmt.Errorf("failed to switch to preview channel: %w", err)
@@ -142,7 +140,7 @@ func useNextChannel() error {
         return err
     }
 
-    releaseChannelFilePath := filepath.Join(constants.ValetEtcPath, constants.ReleaseChannelFile)
+    releaseChannelFilePath := filepath.Join(constants.VshEtcPath, constants.ReleaseChannelFile)
     err := os.WriteFile(releaseChannelFilePath, []byte("next"), 0644)
     if err != nil {
         return fmt.Errorf("failed to switch to next channel: %w", err)
