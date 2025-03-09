@@ -159,7 +159,7 @@ func runtimeUpdate() error {
         fmt.Printf("Updating valet-sh to version %s\n", status.CurrentVersion)
         fmt.Println("Updating runtime")
 
-        url := fmt.Sprintf("https://github.com/valet-sh/runtime/releases/download/%s/%s.tar.gz", status.TargetVersion, status.CurrentPackage)
+        url := fmt.Sprintf("https://github.com/valet-sh/runtime/releases/download/%s/%s.tar.gz", status.CurrentVersion, status.CurrentPackage)
 
         fmt.Printf("Check if runtime release '%s' exists\n", url)
         resp, err := http.Head(url)
