@@ -113,14 +113,6 @@ func setupLinux(vshUser, vshGroup string, logFile *os.File) error {
             return err
         }
 
-        if err := setup.SetupPythonEnvironment(logFile); err != nil {
-            return err
-        }
-
-        if err := setup.InstallVshDependencies(logFile); err != nil {
-            return err
-        }
-
         if err := setup.CreateSymlinks(vshUser, logFile); err != nil {
             return err
         }
@@ -172,14 +164,6 @@ func setupMacOS(vshUser, vshGroup, homebrewPrefix string, isMacARM bool, logFile
         }
 
         if err := setup.SetupRepository(logFile); err != nil {
-            return err
-        }
-
-        if err := setup.SetupPythonEnvironment(logFile); err != nil {
-            return err
-        }
-
-        if err := setup.InstallVshDependencies(logFile); err != nil {
             return err
         }
 
