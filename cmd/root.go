@@ -8,7 +8,12 @@ import (
 
 func preflightChecks(cmd *cobra.Command, args []string) error {
     if cmd.Name() == "setup" || cmd.Name() == "self-upgrade" {
+        prechecks.CheckNotRoot()
         return nil
+    }
+
+    if err := prechecks.CheckNotRoot(); err != nil {
+        return err
     }
 
     if err := prechecks.CheckForValet(); err != nil {
@@ -16,11 +21,11 @@ func preflightChecks(cmd *cobra.Command, args []string) error {
     }
 
     if err := prechecks.CheckForEtcDirectory(); err != nil {
-        return prechecks.CheckForEtcDirectory()
+        return err
     }
 
     if err := prechecks.CheckForValetReleaseChannelFile(); err != nil {
-        return prechecks.CheckForValetReleaseChannelFile()
+        return err
     }
 
     return nil
