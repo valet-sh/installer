@@ -53,10 +53,6 @@ func setupVsh() error {
     }
     defer setupLogFile.Close()
 
-    if err := utils.RequestSudoAccess(); err != nil {
-        return err
-    }
-
     if goruntime.GOOS == "linux" {
         return setupLinux(vshUser, vshGroup, setupLogFile)
     } else if goruntime.GOOS == "darwin" {
@@ -74,6 +70,10 @@ func setupVsh() error {
 
 func setupLinux(vshUser, vshGroup string, logFile *os.File) error {
     fmt.Println("Setting up valet-sh on Linux")
+
+    if err := utils.RequestSudoAccess(); err != nil {
+        return err
+    }
 
     shouldInstall := true
     if utils.PathExists(constants.VshBasePath) || utils.PathExists(constants.VshVenvPath) {
@@ -125,6 +125,10 @@ func setupLinux(vshUser, vshGroup string, logFile *os.File) error {
 
 func setupMacOS(vshUser, vshGroup, homebrewPrefix string, isMacARM bool, logFile *os.File) error {
     fmt.Println("Setting up valet-sh on macOS")
+
+    if err := utils.RequestSudoAccess(); err != nil {
+        return err
+    }
 
     shouldInstall := true
     if utils.PathExists(constants.VshBasePath) || utils.PathExists(constants.VshVenvPath) {
