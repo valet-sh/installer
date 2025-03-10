@@ -20,8 +20,8 @@ func CreateSymlinks(vshUser string, logFile *os.File) error {
         }
     }
 
-    vshBinPath := filepath.Join(constants.VshVenvPath, "bin", "valet-sh")
-    if err := utils.RunCommand("sudo", []string{"ln", "-sf", vshBinPath, "/usr/local/bin/valet-sh"}, logFile); err != nil {
+    vshBinPath := filepath.Join(constants.VshVenvPath, "bin", "valet.sh")
+    if err := utils.RunCommand("sudo", []string{"ln", "-sf", vshBinPath, "/usr/local/bin/valet.sh"}, logFile); err != nil {
         return fmt.Errorf("failed to create symlink: %w", err)
     }
 
