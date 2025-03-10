@@ -93,31 +93,31 @@ func updateVersionBranch(repoPath string, branchName string, majorVersion string
     }
 
     semverRegex := buildSemverRegex(majorVersion)
-    
+
     validVersions := git.FilterTagsSemver(tags, semverRegex)
 
     if len(validVersions) == 0 {
         fmt.Printf("No valid releases found for %s channel\n", branchName)
-        
+
         branchExists, err := git.DoesBranchExist(repoPath, branchName)
         if err != nil {
             return fmt.Errorf("error checking if branch %s exists: %w", branchName, err)
         }
-        
+
         if !branchExists {
             return fmt.Errorf("release channel %s does not exist - please select a valid release channel", branchName)
         }
-        
+
         fmt.Printf("Switching to %s branch for testing without a release\n", branchName)
-        
+
         if err := git.CheckoutBranch(repoPath, branchName); err != nil {
             return fmt.Errorf("failed to checkout %s branch: %w", branchName, err)
         }
-        
+
         if err := git.PullLatest(repoPath); err != nil {
             return fmt.Errorf("failed to pull latest changes: %w", err)
         }
-        
+
         fmt.Printf("Successfully switched to %s branch for testing\n", branchName)
         return runtimeUpdate()
     }
