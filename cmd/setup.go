@@ -17,8 +17,8 @@ import (
 
 var setupCmd = &cobra.Command{
     Use:  "setup",
-    Short: "Setup valet-sh",
-    Long: `Setup valet-sh`,
+    Short: "Setup valet-sh and the runtime",
+    Long: `Setup valet-sh and the runtime`,
     SilenceUsage: true,
     RunE: func(cmd *cobra.Command, args []string) error {
         return setupVsh()

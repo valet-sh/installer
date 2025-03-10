@@ -17,8 +17,8 @@ import (
 
 var updateCmd = &cobra.Command{
     Use:   "update",
-    Short: "Update valet-sh to the latest version",
-    Long:  `Update valet-sh to the latest version`,
+    Short: "Update valet-sh and the runtime to the latest version",
+    Long:  `Update valet-sh and the runtime to the latest version`,
     SilenceUsage: true,
     RunE: func(cmd *cobra.Command, args []string) error {
         return runUpdate()

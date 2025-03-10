@@ -33,8 +33,8 @@ func preflightChecks(cmd *cobra.Command, args []string) error {
 
 var rootCmd = &cobra.Command{
     Use:   "valet-sh-installer",
-    Short: "A CLI tool to update Valet-sh",
-    Long: `A CLI tool to update Valet-sh`,
+    Short: "A CLI tool to install/update valet-sh and the runtime",
+    Long: `A CLI tool to install/update valet-sh and the runtime`,
     Version: "0.0.1",
     SilenceErrors: true,
     PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
