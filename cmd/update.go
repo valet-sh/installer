@@ -199,10 +199,6 @@ func runtimeUpdate() error {
             return fmt.Errorf("bad status code:  %s", respDownload.Status)
         }
 
-        if err != nil {
-            return fmt.Errorf("failed to create venv directory: %w", err)
-        }
-
         err = utils.Untar(constants.VshPath, respDownload.Body)
         if err != nil {
             if venvExists {
