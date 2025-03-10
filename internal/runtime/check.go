@@ -23,29 +23,45 @@ type RuntimeStatus struct {
 func CheckRuntime() (*RuntimeStatus, error) {
     fmt.Println("Checking runtime")
 
-    runtimePath := filepath.Join(constants.VshBasePath, constants.RuntimeFileName)
-    versionPath := filepath.Join(constants.VshVenvPath, constants.VersionFileName)
+    runtimeVersionPaths := map[string]string{
+        "runtime": filepath.Join(constants.VshBasePath, constants.RuntimeFileName),
+        "version": filepath.Join(constants.VshVenvPath, constants.VersionFileName),
+    }
+    var installedRuntimeVersion, targetRuntimeVersion []byte
 
-    for _, path := range []string{runtimePath, versionPath} {
+    for fileType, path := range runtimeVersionPaths {
         fmt.Printf("Check if '%s' exists\n", path)
         if _, err := os.Stat(path); err != nil {
             if os.IsNotExist(err) {
-                return nil, fmt.Errorf("file %s does not exist", path)
+                if fileType == "runtime" {
+                    return nil, fmt.Errorf("runtime file %s does not exist", path)
+                } else if fileType == "version" {
+                    fmt.Printf("Version file missing, using version from valet-sh\n")
+                    targetRuntimeVersion = installedRuntimeVersion
+                    continue
+                }
             }
             return nil, fmt.Errorf("error checking file %s: %w", path, err)
         }
+
+        content, err := os.ReadFile(path)
+        if err != nil {
+            return nil, fmt.Errorf("failed to read %s: %w", fileType, err)
+        }
+        fmt.Printf("Read content from %s: %s\n", path, string(content))
+
+        if fileType == "runtime" {
+            installedRuntimeVersion = content
+        } else if fileType == "version" {
+            targetRuntimeVersion = content
+        }
     }
 
-    fmt.Println()
-
-    installedRuntimeVersion, err := os.ReadFile(runtimePath)
-    if err != nil {
-        return nil, fmt.Errorf("failed to read installed runtime version: %w", err)
+    if len(installedRuntimeVersion) == 0 {
+        return nil, fmt.Errorf("failed to determine installed runtime version")
     }
-
-    targetRuntimeVersion, err := os.ReadFile(versionPath)
-    if err != nil {
-        return nil, fmt.Errorf("failed to read target runtime version: %w", err)
+    if len(targetRuntimeVersion) == 0 {
+        return nil, fmt.Errorf("failed to determine target runtime version")
     }
 
     osName, osCodename, err := CheckOSVersion()
