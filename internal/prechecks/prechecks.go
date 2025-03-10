@@ -3,6 +3,7 @@ package prechecks
 import (
     "fmt"
     "os"
+    "os/user"
     "path/filepath"
 
     "github.com/valet-sh/valet-sh-installer/constants"
@@ -52,4 +53,20 @@ func GetCurrentUser() (string, error) {
         return "", fmt.Errorf("failed to get current user")
     }
     return currentUser, nil
+}
+
+func CheckNotRoot() error {
+    currentUser, err := user.Current()
+    if err != nil {
+        fmt.Println("Error determining current user:", err)
+        os.Exit(1)
+    }
+
+    if currentUser.Uid == "0" {
+        fmt.Println("This application should not be run with sudo or as root.")
+        fmt.Println("Please run as a regular user.")
+        os.Exit(1)
+    }
+
+    return nil
 }
