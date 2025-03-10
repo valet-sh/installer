@@ -10,6 +10,7 @@ import (
     "github.com/charmbracelet/huh"
 
     "github.com/valet-sh/valet-sh-installer/constants"
+    "github.com/valet-sh/valet-sh-installer/internal/prechecks"
 )
 
 var setReleaseChannelCmd= &cobra.Command{
@@ -88,21 +89,10 @@ func getCurrentReleaseChannel() string {
     return strings.TrimSpace(string(releaseChannel))
 }
 
-func ensureEtcDirectoryExists() error {
-    if _, err := os.Stat(constants.VshEtcPath); os.IsNotExist(err) {
-        err := os.MkdirAll(constants.VshEtcPath, 0755)
-        if err != nil {
-            return fmt.Errorf("failed to create etc directory: %w", err)
-        }
-    }
-    return nil
-}
-
-
 func useStableChannel() error {
     fmt.Println("Switching to stable channel")
 
-    if err := ensureEtcDirectoryExists(); err != nil {
+    if err := prechecks.CheckForEtcDirectory(); err != nil {
         return err
     }
 
@@ -119,7 +109,7 @@ func useStableChannel() error {
 func usePreviewChannel() error {
     fmt.Println("Switching to preview channel")
 
-    if err := ensureEtcDirectoryExists(); err != nil {
+    if err := prechecks.CheckForEtcDirectory(); err != nil {
         return err
     }
 
@@ -136,7 +126,7 @@ func usePreviewChannel() error {
 func useNextChannel() error {
     fmt.Println("Switching to next channel")
 
-    if err := ensureEtcDirectoryExists(); err != nil {
+    if err := prechecks.CheckForEtcDirectory(); err != nil {
         return err
     }
 
