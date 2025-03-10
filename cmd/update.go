@@ -45,7 +45,7 @@ func runUpdate() error {
         fmt.Printf("Using %s channel for update\n", releaseChannel)
         return updateVersionBranch(repoPath, releaseChannel, majorVersion)
     } else {
-        return fmt.Errorf("Invalid release channel: %s", releaseChannel)
+        return fmt.Errorf("invalid release channel: %s", releaseChannel)
     }
 }
 
