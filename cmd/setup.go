@@ -50,7 +50,7 @@ func setupVsh() error {
     }
     fmt.Println("Homebrew prefix:", homebrewPrefix)
 
-    setupLogFile, err := setup.PrepareLogFile()
+    setupLogFile, err := setup.PrepareSetupLogFile()
     if err != nil {
         return err
     }

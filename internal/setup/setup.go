@@ -10,7 +10,7 @@ import (
     "github.com/valet-sh/valet-sh-installer/internal/git"
 )
 
-func PrepareLogFile() (*os.File, error) {
+func PrepareSetupLogFile() (*os.File, error) {
     setupLogFile, err := os.Create(constants.VshInstallLog)
     if err != nil {
         return nil, fmt.Errorf("failed to create setup log file: %w", err)
