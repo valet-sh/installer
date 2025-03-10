@@ -29,8 +29,6 @@ func init() {
 }
 
 func setupVsh() error {
-    fmt.Println("Setting up valet-sh")
-
     vshUser, err := prechecks.GetCurrentUser()
     if err != nil {
         return err
@@ -38,7 +36,7 @@ func setupVsh() error {
 
     var vshGroup string
     if goruntime.GOOS == "linux" {
-        vshGroup = "vshUser"
+        vshGroup = vshUser
     } else if goruntime.GOOS == "darwin" {
         vshGroup = "admin"
     }
@@ -48,7 +46,6 @@ func setupVsh() error {
     if arch == "darwin" && strings.HasPrefix(arch, "arm") {
         homebrewPrefix = "/opt/homebrew"
     }
-    fmt.Println("Homebrew prefix:", homebrewPrefix)
 
     setupLogFile, err := setup.PrepareSetupLogFile()
     if err != nil {
@@ -114,6 +111,10 @@ func setupLinux(vshUser, vshGroup string, logFile *os.File) error {
         }
 
         if err := setup.CreateSymlinks(vshUser, logFile); err != nil {
+            return err
+        }
+
+        if err := runUpdate(); err != nil {
             return err
         }
 
