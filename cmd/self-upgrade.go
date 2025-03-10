@@ -50,5 +50,3 @@ func selfUpgrade(version string) error {
     log.Printf("Successfully updated to version %s", latest.Version())
     return nil
 }
-
-
