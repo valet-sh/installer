@@ -1,6 +1,8 @@
 package cmd
 
 import (
+    "fmt"
+
     "github.com/spf13/cobra"
 
     "github.com/valet-sh/valet-sh-installer/internal/prechecks"
@@ -17,6 +19,7 @@ func preflightChecks(cmd *cobra.Command, args []string) error {
     }
 
     if err := prechecks.CheckForValet(); err != nil {
+        fmt.Printf("Valet is not installed. Run 'valet-sh-installer setup' to install it.\n")
         return err
     }
 

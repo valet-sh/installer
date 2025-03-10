@@ -12,7 +12,7 @@ import (
 func CheckForValet() error {
     _, err := os.Stat(constants.VshPath)
     if os.IsNotExist(err) {
-        return fmt.Errorf("Valet-sh does not exists, please run `valet-sh-installer install first`")
+        return fmt.Errorf("valet-sh does not exists, please run `valet-sh-installer install` first")
     }
 
     return nil
