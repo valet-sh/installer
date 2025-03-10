@@ -23,10 +23,14 @@ func PrepareVshDirectory(vshUser, vshGroup string, logFile *os.File) error {
         if err := utils.RunCommand("sudo", []string{"mkdir", "-p", constants.VshPath}, logFile); err != nil {
             return fmt.Errorf("failed to create install directory: %w", err)
         }
-        if err := utils.RunCommand("sudo", []string{"chown", fmt.Sprintf("%s:%s", vshUser, vshGroup), constants.VshPath}, logFile); err != nil {
-            return fmt.Errorf("failed to set permissions on install directory: %w", err)
-        }
+    } else if err != nil {
+        return fmt.Errorf("failed to check if directory exists: %w", err)
     }
+
+    if err := utils.RunCommand("sudo", []string{"chown", fmt.Sprintf("%s:%s", vshUser, vshGroup), constants.VshPath}, logFile); err != nil {
+        return fmt.Errorf("failed to set permissions on install directory: %w", err)
+    }
+
     return nil
 }
 
