@@ -31,7 +31,7 @@ func InstallMacOSDependencies(homebrewPrefix string, logFile *os.File) error {
     os.Setenv("LDFLAGS", "-L"+homebrewPrefix+"/opt/openssl/lib")
 
     fmt.Println(" - installing required brew packages")
-    if err := utils.RunCommand(homebrewPrefix+"/bin/brew", []string{"install", "openssl", "rust", "python@3.10"}, logFile); err != nil {
+    if err := utils.RunCommand(homebrewPrefix+"/bin/brew", []string{"install", "openssl", "rust", "python@3.12"}, logFile); err != nil {
         return fmt.Errorf("failed to install required brew packages: %w", err)
     }
 
