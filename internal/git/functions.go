@@ -83,12 +83,25 @@ func CloneRepository(repoUrl, repoPath string) error {
 }
 
 func DoesBranchExist(repoPath, branchName string) (bool, error) {
-    cmd := exec.Command("git", "branch", "--list", "--all", branchName)
+    cmd := exec.Command("git", "branch", "--list", "--all")
     cmd.Dir = repoPath
     output, err := cmd.Output()
     if err != nil {
         return false, err
     }
 
-    return len(strings.TrimSpace(string(output))) > 0, nil
+    branches := strings.Split(string(output), "\n")
+    for _, branch := range branches {
+        cleanBranch := strings.TrimSpace(branch)
+        if strings.HasPrefix(cleanBranch, "*") {
+            cleanBranch = strings.TrimSpace(cleanBranch[1:])
+        }
+        if cleanBranch == branchName ||
+           cleanBranch == "remotes/origin/"+branchName ||
+           strings.HasSuffix(cleanBranch, "/"+branchName) {
+            return true, nil
+        }
+    }
+
+    return false, nil
 }
