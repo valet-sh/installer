@@ -54,6 +54,7 @@ func setupVsh() error {
     defer setupLogFile.Close()
 
     if goruntime.GOOS == "linux" {
+        fmt.Println("Setting up valet-sh on Linux")
         return setupLinux(vshUser, vshGroup, setupLogFile)
     } else if goruntime.GOOS == "darwin" {
         isMacARM := strings.HasPrefix(arch, "arm")
@@ -69,8 +70,6 @@ func setupVsh() error {
 }
 
 func setupLinux(vshUser, vshGroup string, logFile *os.File) error {
-    fmt.Println("Setting up valet-sh on Linux")
-
     if err := utils.RequestSudoAccess(); err != nil {
         return err
     }
