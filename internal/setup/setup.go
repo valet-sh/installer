@@ -18,38 +18,6 @@ func PrepareLogFile() (*os.File, error) {
     return setupLogFile, nil
 }
 
-func InstallVshDependencies(logFile *os.File) error {
-    venvPip := filepath.Join(constants.VshVenvPath, "bin", "pip3")
-
-    if err := utils.RunCommand(venvPip, []string{"uninstall", "-y", "valet-sh"}, logFile); err != nil {
-        return fmt.Errorf("failed to uninstall existing valet-sh: %w", err)
-    }
-
-    if err := utils.RunCommand(venvPip, []string{"install", "--upgrade", "pip", "setuptools==60.8.2", "wheel==0.37.1"}, logFile); err != nil {
-        return fmt.Errorf("failed to install base packages: %w", err)
-    }
-
-    fmt.Println("Installing ansible and dependencies...")
-    if err := utils.RunCommand(venvPip, []string{"install", "-r", filepath.Join(constants.VshBasePath, "requirements.txt")}, logFile); err != nil {
-        return fmt.Errorf("failed to install valet-sh requirements: %w", err)
-    }
-
-    requirementsYml := filepath.Join(constants.VshBasePath, "requirements.yml")
-    if _, err := os.Stat(requirementsYml); err == nil {
-        fmt.Println("Installing ansible collections...")
-        collectionsPath := filepath.Join(constants.VshBasePath, "collections")
-        if err := utils.RunCommand("ansible-galaxy", []string{
-            "collection", "install",
-            "-r", requirementsYml,
-            "-p", collectionsPath,
-        }, logFile); err != nil {
-            return fmt.Errorf("failed to install ansible collections: %w", err)
-        }
-    }
-
-    return nil
-}
-
 func PrepareVshDirectory(vshUser, vshGroup string, logFile *os.File) error {
     if _, err := os.Stat(constants.VshPath); os.IsNotExist(err) {
         if err := utils.RunCommand("sudo", []string{"mkdir", "-p", constants.VshPath}, logFile); err != nil {
@@ -61,7 +29,6 @@ func PrepareVshDirectory(vshUser, vshGroup string, logFile *os.File) error {
     }
     return nil
 }
-
 
 func RemoveVshAnsibleFactsFile() error {
     if _, err := os.Stat(constants.VshAnsibleFactsFile); err == nil {
@@ -86,7 +53,7 @@ func RemoveVshVenv() error {
     if _, err := os.Stat(constants.VshVenvPath); err == nil {
         fmt.Println("Removing existing virtual environment...")
         if err := os.RemoveAll(constants.VshVenvPath); err != nil {
-            return fmt.Errorf("failed to remove existing virtual environment: %w", err)
+            return fmt.Errorf("failed to remove existing runtime: %w", err)
         }
     }
 
