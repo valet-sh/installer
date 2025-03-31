@@ -161,6 +161,7 @@ func buildSemverRegex(majorVersion string) string {
 func runtimeUpdate() error {
     status, err := runtime.CheckRuntime()
     if err != nil {
+        fmt.Printf("Failed to check runtime: %v\n", err)
         return fmt.Errorf("failed to check runtime: %w", err)
     }
 
