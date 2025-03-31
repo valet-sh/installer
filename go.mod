@@ -1,8 +1,6 @@
 module github.com/valet-sh/valet-sh-installer
 
-go 1.22
-
-toolchain go1.22.2
+go 1.24.1
 
 require (
 	github.com/charmbracelet/huh v0.6.0
