@@ -5,6 +5,7 @@ go 1.24.1
 require (
 	github.com/charmbracelet/huh v0.6.0
 	github.com/creativeprojects/go-selfupdate v1.4.1
+	github.com/gookit/color v1.5.4
 	github.com/spf13/cobra v1.9.1
 	golang.org/x/mod v0.17.0
 )
@@ -44,6 +45,7 @@ require (
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/ulikunitz/xz v0.5.12 // indirect
 	github.com/xanzy/go-gitlab v0.115.0 // indirect
+	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 // indirect
 	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/oauth2 v0.25.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
