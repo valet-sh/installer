@@ -22,7 +22,11 @@ var setupCmd = &cobra.Command{
 	Long:         `Setup valet-sh and the runtime`,
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return setupVsh()
+		err := setupVsh()
+		if err != nil {
+			color.Error.Prompt(err.Error())
+		}
+		return err
 	},
 }
 
@@ -55,14 +59,14 @@ func setupVsh() error {
 	defer setupLogFile.Close()
 
 	if goruntime.GOOS == "linux" {
-		fmt.Println("Setting up valet-sh on Linux")
+		color.Info.Println("Setting up valet-sh on Linux\n")
 		return setupLinux(vshUser, vshGroup, setupLogFile)
 	} else if goruntime.GOOS == "darwin" {
 		isMacARM := strings.HasPrefix(arch, "arm")
 		if isMacARM {
-			fmt.Println("Setting up valet-sh on macOS (Apple Silicon)")
+			color.Info.Println("Setting up valet-sh on macOS (Apple Silicon)\n")
 		} else {
-			fmt.Println("Setting up valet-sh on macOS (Intel)")
+			color.Info.Println("Setting up valet-sh on macOS (Intel)\n")
 		}
 		return setupMacOS(vshUser, vshGroup, homebrewPrefix, isMacARM, setupLogFile)
 	}
@@ -126,7 +130,7 @@ func setupLinux(vshUser, vshGroup string, logFile *os.File) error {
 }
 
 func setupMacOS(vshUser, vshGroup, homebrewPrefix string, isMacARM bool, logFile *os.File) error {
-	fmt.Println("Setting up valet-sh on macOS")
+	color.Info.Println("Setting up valet-sh on macOS\n")
 
 	if err := utils.RequestSudoAccess(); err != nil {
 		return err
@@ -178,7 +182,7 @@ func setupMacOS(vshUser, vshGroup, homebrewPrefix string, isMacARM bool, logFile
 			return err
 		}
 
-		fmt.Println("Valet-sh setup complete")
+		color.Greenln("Valet-sh setup complete")
 	} else {
 		color.Warn.Println("Setup cancelled")
 	}
