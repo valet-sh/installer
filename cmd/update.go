@@ -21,11 +21,12 @@ var updateCmd = &cobra.Command{
 	Short:        "Update valet-sh and the runtime to the latest version",
 	Long:         `Update valet-sh and the runtime to the latest version`,
 	SilenceUsage: true,
+	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-
 		err := runUpdate()
 		if err != nil {
 			color.Error.Prompt(err.Error())
+			return err
 		}
 		return nil
 	},

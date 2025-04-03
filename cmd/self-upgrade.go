@@ -17,10 +17,12 @@ var selfUpgradeCmd = &cobra.Command{
 	Short:        "Update valet-sh-installer to the latest version",
 	Long:         `Update valet-sh-installer to the latest version`,
 	SilenceUsage: true,
+	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		err := selfUpgrade(rootCmd.Version)
 		if err != nil {
 			color.Error.Prompt(err.Error())
+			return err
 		}
 		return nil
 	},

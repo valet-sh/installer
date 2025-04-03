@@ -20,6 +20,7 @@ var setReleaseChannelCmd = &cobra.Command{
 	Short:        "Set the release channel to update from",
 	Long:         `Set the release channel to update from`,
 	SilenceUsage: true,
+	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 1 {
 			err := processBranchSelection(args[0])
@@ -31,6 +32,7 @@ var setReleaseChannelCmd = &cobra.Command{
 		err := setReleaseChannel()
 		if err != nil {
 			color.Error.Prompt(err.Error())
+			return err
 		}
 		return nil
 	},

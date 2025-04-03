@@ -21,10 +21,12 @@ var setupCmd = &cobra.Command{
 	Short:        "Setup valet-sh and the runtime",
 	Long:         `Setup valet-sh and the runtime`,
 	SilenceUsage: true,
+	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		err := setupVsh()
 		if err != nil {
 			color.Error.Prompt(err.Error())
+			return err
 		}
 		return nil
 	},
