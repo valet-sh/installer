@@ -27,7 +27,7 @@ var updateCmd = &cobra.Command{
 		if err != nil {
 			color.Error.Prompt(err.Error())
 		}
-		return err
+		return nil
 	},
 }
 
