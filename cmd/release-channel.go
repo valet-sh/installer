@@ -48,7 +48,7 @@ func setReleaseChannel() error {
 
 	var selectedReleaseChannel string
 	currentReleaseChannel := getCurrentReleaseChannel()
-	fmt.Printf("Current release channel: %s\n", currentReleaseChannel)
+	fmt.Printf("Current release channel: %s\n\n", currentReleaseChannel)
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().

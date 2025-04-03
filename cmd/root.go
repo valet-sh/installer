@@ -10,6 +10,8 @@ import (
 	"github.com/valet-sh/valet-sh-installer/internal/prechecks"
 )
 
+var version = "<snapshot>"
+
 func preflightChecks(cmd *cobra.Command, args []string) error {
 	if cmd.Name() == "setup" || cmd.Name() == "self-upgrade" {
 		return prechecks.CheckNotRoot()
@@ -39,8 +41,8 @@ var rootCmd = &cobra.Command{
 	Use:           "valet-sh-installer",
 	Short:         "A CLI tool to install/update valet-sh and the runtime",
 	Long:          `A CLI tool to install/update valet-sh and the runtime`,
-	Version:       "0.0.1",
-	SilenceErrors: true,
+	Version:       version,
+	SilenceErrors: false,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		err := preflightChecks(cmd, args)
 
