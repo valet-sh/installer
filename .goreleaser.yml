@@ -17,8 +17,9 @@ builds:
       - -s -w -X github.com/valet-sh/valet-sh-installer/cmd.version={{.Version}}
 
 archives:
-  - formats: [ 'binary' ]
-  - name_template: >-
+  - id: valet-sh-installer
+    formats: [ 'binary' ]
+    name_template: >-
       valet-sh-{{ .ProjectName }}_
       {{- if eq .Os "darwin" }}darwin
       {{- else if eq .Os "linux" }}linux
