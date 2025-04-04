@@ -250,7 +250,7 @@ func runtimeUpdate() error {
 			return fmt.Errorf("failed to update version file: %w", err)
 		}
 
-		color.Info.Printf("\nRuntime '%s' updated successfully\n\n", status.CurrentVersion)
+		color.Info.Printf("valet-sh runtime: successfully updated to '%s'\n\n", status.CurrentVersion)
 
 		if venvExists {
 			err = os.RemoveAll(tmpDir)
