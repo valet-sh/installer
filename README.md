@@ -1,9 +1,5 @@
+[![goreleaser](https://github.com/valet-sh/installer/actions/workflows/release.yml/badge.svg)](https://github.com/valet-sh/installer/actions/workflows/release.yml)
 
+# valet-sh installer
 
-# Development
-
-## Build for Linux
-
-```bash
-go build -o build/valet-sh-installer-linux-amd64 -ldflags="-s -w" -v
-```
+This project provides the installation and update process for valet.sh and the runtime.
