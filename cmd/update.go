@@ -76,6 +76,8 @@ func updateNextBranch(repoPath string) error {
 		return fmt.Errorf("failed to pull latest changes: %w", err)
 	}
 
+	color.Info.Println("valet-sh: Successfully pulled latest changes from next branch")
+
 	return runtimeUpdate()
 }
 
