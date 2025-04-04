@@ -17,10 +17,10 @@ import (
 )
 
 var updateCmd = &cobra.Command{
-	Use:          "update",
-	Short:        "Update valet-sh and the runtime to the latest version",
-	Long:         `Update valet-sh and the runtime to the latest version`,
-	SilenceUsage: true,
+	Use:           "update",
+	Short:         "Update valet-sh and the runtime to the latest version",
+	Long:          `Update valet-sh and the runtime to the latest version`,
+	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		err := runUpdate()
@@ -187,7 +187,7 @@ func runtimeUpdate() error {
 		if err != nil {
 			return fmt.Errorf("failed to check runtime release: %w", err)
 		}
-		
+
 		// @FIXME
 		defer resp.Body.Close()
 
@@ -258,7 +258,7 @@ func runtimeUpdate() error {
 		}
 
 	} else {
-		color.Notice.Println("valet-sh runtime is already up to date\n")
+		color.Info.Println("valet-sh runtime: already up to date\n")
 	}
 
 	return nil

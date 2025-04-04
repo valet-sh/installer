@@ -44,7 +44,7 @@ func selfUpgrade(version string) error {
 	}
 
 	if latest.LessOrEqual(version) {
-		color.Info.Printf("Current version (%s) is the latest\n", version)
+		color.Info.Printf("valet-sh installer: Current version (%s) is the latest\n", version)
 		return nil
 	}
 
@@ -55,6 +55,6 @@ func selfUpgrade(version string) error {
 	if err := selfupdate.UpdateTo(context.Background(), latest.AssetURL, latest.AssetName, exe); err != nil {
 		return fmt.Errorf("error occurred while updating binary: %w", err)
 	}
-	color.Info.Printf("Successfully updated to version %s\n", latest.Version())
+	color.Info.Printf("valet-sh installer: Successfully updated to version %s\n", latest.Version())
 	return nil
 }
