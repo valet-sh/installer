@@ -3,11 +3,12 @@ package runtime
 import (
 	"bufio"
 	"fmt"
-	"github.com/valet-sh/valet-sh-installer/internal/utils"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/valet-sh/valet-sh-installer/internal/utils"
 
 	"github.com/valet-sh/valet-sh-installer/constants"
 )
@@ -121,7 +122,7 @@ func GetArchitecture() string {
 	archMapping := map[string]string{
 		"amd64": "x86_64",
 		"386":   "i386",
-		"arm64": "aarch64",
+		"arm64": "arm64",
 	}
 
 	if mappedArch, exists := archMapping[arch]; exists {
