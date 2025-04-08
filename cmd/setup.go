@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/gookit/color"
 	"os"
 	goruntime "runtime"
 	"strings"
+
+	"github.com/gookit/color"
 
 	"github.com/spf13/cobra"
 
@@ -17,10 +18,10 @@ import (
 )
 
 var setupCmd = &cobra.Command{
-	Use:          "setup",
-	Short:        "Setup valet-sh and the runtime",
-	Long:         `Setup valet-sh and the runtime`,
-	SilenceUsage: true,
+	Use:           "setup",
+	Short:         "Setup valet-sh and the runtime",
+	Long:          `Setup valet-sh and the runtime`,
+	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		err := setupVsh()
@@ -181,6 +182,10 @@ func setupMacOS(vshUser, vshGroup, homebrewPrefix string, isMacARM bool, logFile
 		}
 
 		if err := setup.CreateSymlinks(vshUser, logFile); err != nil {
+			return err
+		}
+
+		if err := runUpdate(); err != nil {
 			return err
 		}
 
