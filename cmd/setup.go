@@ -133,8 +133,6 @@ func setupLinux(vshUser, vshGroup string, logFile *os.File) error {
 }
 
 func setupMacOS(vshUser, vshGroup, homebrewPrefix string, isMacARM bool, logFile *os.File) error {
-	color.Info.Println("Setting up valet-sh on macOS\n")
-
 	if err := utils.RequestSudoAccess(); err != nil {
 		return err
 	}
