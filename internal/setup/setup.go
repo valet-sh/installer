@@ -15,6 +15,9 @@ func PrepareSetupLogFile() (*os.File, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create setup log file: %w", err)
 	}
+
+	utils.LogFile = setupLogFile
+
 	return setupLogFile, nil
 }
 
