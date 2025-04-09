@@ -25,47 +25,25 @@ type RuntimeStatus struct {
 func CheckRuntime() (*RuntimeStatus, error) {
 	utils.Println("Checking runtime...")
 
-	runtimeVersionPaths := map[string]string{
-		"runtime": filepath.Join(constants.VshBasePath, constants.RuntimeFileName),
-		"version": filepath.Join(constants.VshVenvPath, constants.VersionFileName),
+	runtimePath := filepath.Join(constants.VshBasePath, constants.RuntimeFileName)
+	versionPath := filepath.Join(constants.VshVenvPath, constants.VersionFileName)
+
+	installedRuntimeVersion, err := CheckRuntimeFile(runtimePath, true)
+	if err != nil {
+		return nil, err
 	}
-	var installedRuntimeVersion, targetRuntimeVersion []byte
-
-	for fileType, path := range runtimeVersionPaths {
-		utils.Printf("Check if '%s' exists\n", path)
-
-		if _, err := os.Stat(path); err != nil {
-			if os.IsNotExist(err) {
-				if fileType == "runtime" {
-
-					return nil, fmt.Errorf("runtime file %s does not exist", path)
-				} else if fileType == "version" {
-					utils.Println("Version file missing, using version from valet-sh")
-					targetRuntimeVersion = installedRuntimeVersion
-					continue
-				}
-			}
-			return nil, fmt.Errorf("error checking file %s: %w", path, err)
-		}
-
-		content, err := os.ReadFile(path)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read %s: %w", fileType, err)
-		}
-		utils.Printf("Read content from %s: %s\n", path, string(content))
-
-		if fileType == "runtime" {
-			installedRuntimeVersion = content
-		} else if fileType == "version" {
-			targetRuntimeVersion = content
-		}
-	}
-
 	if len(installedRuntimeVersion) == 0 {
 		return nil, fmt.Errorf("failed to determine installed runtime version")
 	}
+
+	targetRuntimeVersion, err := CheckRuntimeFile(versionPath, false)
+	if err != nil {
+		return nil, err
+	}
+
 	if len(targetRuntimeVersion) == 0 {
-		return nil, fmt.Errorf("failed to determine target runtime version")
+		utils.Printf("Using installed runtime version '%s' as target version\n", string(installedRuntimeVersion))
+		targetRuntimeVersion = installedRuntimeVersion
 	}
 
 	osName, osCodename, err := CheckOSVersion()
@@ -208,4 +186,23 @@ func BuildPackageName(osName, osCodename, arch string) string {
 		return strings.ToLower(osName) + "_" + strings.ToLower(osCodename) + "-" + string(arch)
 	}
 	return strings.ToLower(osName) + "-" + string(arch)
+}
+
+func CheckRuntimeFile(path string, isRequired bool) ([]byte, error) {
+	utils.Printf("Checking file: '%s'\n", path)
+
+	content, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			if isRequired {
+				return nil, fmt.Errorf("required file %s does not exist", path)
+			}
+			utils.Printf("File '%s' does not exist, but it's not required\n", path)
+			return nil, nil
+		}
+		return nil, fmt.Errorf("error accessing file %s: %w", path, err)
+	}
+
+	utils.Printf("Successfully read '%s' (%d bytes)\n", path, len(content))
+	return content, nil
 }
