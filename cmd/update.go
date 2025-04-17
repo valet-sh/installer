@@ -2,17 +2,19 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/gookit/color"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/gookit/color"
 
 	"github.com/spf13/cobra"
 
 	"github.com/valet-sh/valet-sh-installer/constants"
 	"github.com/valet-sh/valet-sh-installer/internal/git"
 	"github.com/valet-sh/valet-sh-installer/internal/runtime"
+	"github.com/valet-sh/valet-sh-installer/internal/setup"
 	"github.com/valet-sh/valet-sh-installer/internal/utils"
 )
 
@@ -23,9 +25,18 @@ var updateCmd = &cobra.Command{
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		err := runUpdate()
+
+		updateLogFile, err := setup.PrepareSetupLogFile()
 		if err != nil {
-			color.Error.Prompt(err.Error())
+			return err
+		}
+		defer updateLogFile.Close()
+
+		utils.LogFile = updateLogFile
+
+		err = runUpdate()
+		if err != nil {
+			color.Error.Printf("Error: %s\n", err.Error())
 			return err
 		}
 		return nil
