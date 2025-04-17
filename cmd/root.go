@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/gookit/color"
 	"github.com/valet-sh/valet-sh-installer/internal/utils"
 
@@ -47,7 +48,7 @@ var rootCmd = &cobra.Command{
 		err := preflightChecks(cmd, args)
 
 		if err != nil {
-			color.Error.Prompt(err.Error())
+			color.Error.Printf("Error: %s\n", err.Error())
 		}
 		return err
 	},
