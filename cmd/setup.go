@@ -26,7 +26,7 @@ var setupCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		err := setupVsh()
 		if err != nil {
-			color.Error.Prompt(err.Error())
+			color.Error.Printf("Error: %s\n", err.Error())
 			return err
 		}
 		return nil
