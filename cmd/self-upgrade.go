@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime"
+
 	"github.com/gookit/color"
 	"github.com/valet-sh/valet-sh-installer/internal/utils"
-	"runtime"
 
 	"github.com/creativeprojects/go-selfupdate"
 	"github.com/spf13/cobra"
@@ -21,7 +22,7 @@ var selfUpgradeCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		err := selfUpgrade(rootCmd.Version)
 		if err != nil {
-			color.Error.Prompt(err.Error())
+			color.Error.Printf("Error: %s\n", err.Error())
 			return err
 		}
 		return nil
