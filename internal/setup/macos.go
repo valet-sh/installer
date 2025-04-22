@@ -7,18 +7,26 @@ import (
 	"github.com/valet-sh/valet-sh-installer/internal/utils"
 )
 
-func InstallMacARMDependencies(logFile *os.File) error {
+func InstallMacARMDependencies(homebrewPrefix string, logFile *os.File) error {
 	utils.Println("Installing dependencies for Mac ARM")
-	utils.Println("Install rosetta")
-	if err := utils.RunCommand("/usr/sbin/softwareupdate", []string{"--install-rosetta", "--agree-to-license"}, logFile); err != nil {
-		return fmt.Errorf("failed to install rosetta: %w", err)
-	}
+
+	InstallMacOSHomebrew(logFile)
+	InstallMacOSRosetta(logFile)
+	InstallMacOSHomebrewPackages(homebrewPrefix, logFile)
+
 	return nil
 }
 
 func InstallMacOSDependencies(homebrewPrefix string, logFile *os.File) error {
 	utils.Println("Installing dependencies for macOS")
 
+	InstallMacOSHomebrew(logFile)
+	InstallMacOSHomebrewPackages(homebrewPrefix, logFile)
+
+	return nil
+}
+
+func InstallMacOSHomebrew(logFile *os.File) error {
 	if err := utils.RunCommand("curl", []string{"-fsSL", "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh", "-o", "/tmp/homebrew_install.sh"}, logFile); err != nil {
 		return fmt.Errorf("failed to download homebrew install script: %w", err)
 	}
@@ -26,6 +34,18 @@ func InstallMacOSDependencies(homebrewPrefix string, logFile *os.File) error {
 		return fmt.Errorf("failed to install homebrew: %w", err)
 	}
 
+	return nil
+}
+
+func InstallMacOSRosetta(logFile *os.File) error {
+	if err := utils.RunCommand("/usr/sbin/softwareupdate", []string{"--install-rosetta", "--agree-to-license"}, logFile); err != nil {
+		return fmt.Errorf("failed to install rosetta: %w", err)
+	}
+
+	return nil
+}
+
+func InstallMacOSHomebrewPackages(homebrewPrefix string, logFile *os.File) error {
 	// @FIXME
 	os.Setenv("CPPFLAGS", "-I"+homebrewPrefix+"/opt/openssl/include")
 	os.Setenv("LDFLAGS", "-L"+homebrewPrefix+"/opt/openssl/lib")
