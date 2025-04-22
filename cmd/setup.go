@@ -161,7 +161,7 @@ func setupMacOS(vshUser, vshGroup, homebrewPrefix string, isMacARM bool, logFile
 	if shouldInstall {
 
 		if isMacARM {
-			if err := setup.InstallMacARMDependencies(logFile); err != nil {
+			if err := setup.InstallMacARMDependencies(homebrewPrefix, logFile); err != nil {
 				return err
 			}
 		}
