@@ -30,7 +30,6 @@ var updateCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		defer updateLogFile.Close()
 
 		utils.LogFile = updateLogFile
 

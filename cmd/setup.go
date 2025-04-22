@@ -59,7 +59,6 @@ func setupVsh() error {
 	if err != nil {
 		return err
 	}
-	defer setupLogFile.Close()
 
 	if goruntime.GOOS == "linux" {
 		color.Info.Println("Setting up valet-sh on Linux\n")
