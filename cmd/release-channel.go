@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/gookit/color"
-	"github.com/valet-sh/valet-sh-installer/internal/utils"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/gookit/color"
+	"github.com/valet-sh/valet-sh-installer/internal/utils"
 
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
@@ -16,22 +17,22 @@ import (
 )
 
 var setReleaseChannelCmd = &cobra.Command{
-	Use:          "release-channel",
-	Short:        "Set the release channel to update from",
-	Long:         `Set the release channel to update from`,
-	SilenceUsage: true,
+	Use:           "release-channel",
+	Short:         "Set the release channel to update from",
+	Long:          `Set the release channel to update from`,
+	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 1 {
 			err := processBranchSelection(args[0])
 			if err != nil {
-				color.Error.Prompt(err.Error())
+				color.Error.Printf("Error: %s\n", err.Error())
 			}
 			return err
 		}
 		err := setReleaseChannel()
 		if err != nil {
-			color.Error.Prompt(err.Error())
+			color.Error.Printf("Error: %s\n", err.Error())
 			return err
 		}
 		return nil
