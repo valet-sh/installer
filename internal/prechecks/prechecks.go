@@ -2,11 +2,12 @@ package prechecks
 
 import (
 	"fmt"
-	"github.com/gookit/color"
-	"github.com/valet-sh/valet-sh-installer/internal/utils"
 	"os"
 	"os/user"
 	"path/filepath"
+
+	"github.com/gookit/color"
+	"github.com/valet-sh/valet-sh-installer/internal/utils"
 
 	"github.com/valet-sh/valet-sh-installer/constants"
 )
@@ -68,6 +69,20 @@ func CheckNotRoot() error {
 		color.Red.Println("This application should not be run with sudo or as root. Please run as a regular user.")
 
 		os.Exit(1)
+	}
+
+	return nil
+}
+
+func RemoveOldCollectionDir() error {
+	collectionDir := filepath.Join(constants.VshBasePath, "collections")
+	if _, err := os.Stat(collectionDir); os.IsNotExist(err) {
+		return nil
+	}
+
+	err := os.RemoveAll(collectionDir)
+	if err != nil {
+		return fmt.Errorf("failed to remove old collection directory: %w", err)
 	}
 
 	return nil

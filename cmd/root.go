@@ -35,6 +35,10 @@ func preflightChecks(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	if err := prechecks.RemoveOldCollectionDir(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
