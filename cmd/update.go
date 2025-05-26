@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	goruntime "runtime"
 	"strings"
 
 	"github.com/gookit/color"
@@ -181,6 +182,12 @@ func buildSemverRegex(majorVersion string) string {
 }
 
 func runtimeUpdate() error {
+
+	utils.Println("Updating valet-sh dependencies")
+	if err := UpdateDependencies(); err != nil {
+		return fmt.Errorf("failed to update dependencies: %w", err)
+	}
+
 	status, err := runtime.CheckRuntime()
 	if err != nil {
 		return fmt.Errorf("failed to check runtime: %w", err)
@@ -271,6 +278,35 @@ func runtimeUpdate() error {
 
 	} else {
 		color.Info.Println("valet-sh runtime: already up to date\n")
+	}
+
+	return nil
+}
+
+func UpdateDependencies() error {
+	arch := runtime.GetArchitecture()
+	homebrewPrefix := constants.HomebrewPrefix
+	if arch == "darwin" && strings.HasPrefix(arch, "arm") {
+		homebrewPrefix = "/opt/homebrew"
+	}
+
+	setupLogFile, err := setup.PrepareSetupLogFile()
+	if err != nil {
+		return err
+	}
+
+	if goruntime.GOOS == "linux" {
+		color.Info.Println("Updating Linux dependencies\n")
+		return setup.InstallLinuxDependencies(setupLogFile)
+	} else if goruntime.GOOS == "darwin" {
+		isMacARM := strings.HasPrefix(arch, "arm")
+		if isMacARM {
+			color.Info.Println("Updating macOS (ARM) dependencies\n")
+			return setup.InstallMacARMDependencies(homebrewPrefix, setupLogFile)
+		} else {
+			color.Info.Println("Updating macOS (Intel) dependencies\n")
+			return setup.InstallMacOSDependencies(homebrewPrefix, setupLogFile)
+		}
 	}
 
 	return nil
