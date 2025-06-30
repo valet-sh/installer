@@ -51,7 +51,7 @@ func setupVsh() error {
 
 	arch := runtime.GetArchitecture()
 	homebrewPrefix := constants.HomebrewPrefix
-	if arch == "darwin" && strings.HasPrefix(arch, "arm") {
+	if goruntime.GOOS == "darwin" && strings.HasPrefix(arch, "arm") {
 		homebrewPrefix = "/opt/homebrew"
 	}
 
