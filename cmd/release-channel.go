@@ -51,7 +51,8 @@ func setReleaseChannel() error {
 
 	var selectedReleaseChannel string
 	currentReleaseChannel := getCurrentReleaseChannel()
-	fmt.Printf("Current release channel: %s\n\n", currentReleaseChannel)
+	selectedReleaseChannel = currentReleaseChannel
+
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().
@@ -88,7 +89,7 @@ func processBranchSelection(branch string) error {
 
 func currentMarker(label, value, currentReleaseChannel string) huh.Option[string] {
 	if value == currentReleaseChannel {
-		return huh.NewOption(label+" - current", value).Selected(true)
+		return huh.NewOption(label+" - current", value)
 	}
 	return huh.NewOption(label, value)
 }
