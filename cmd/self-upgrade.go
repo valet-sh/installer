@@ -35,8 +35,6 @@ func init() {
 func selfUpgrade(version string) error {
 	latest, found, err := selfupdate.DetectLatest(context.Background(), selfupdate.ParseSlug("valet-sh/installer"))
 
-	utils.Debugf(fmt.Sprintf("%+v", latest))
-
 	if err != nil {
 		return fmt.Errorf("error occurred while detecting version: %w", err)
 	}
