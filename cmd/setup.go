@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	goruntime "runtime"
 	"strings"
 
@@ -55,35 +54,30 @@ func setupVsh() error {
 		homebrewPrefix = "/opt/homebrew"
 	}
 
-	setupLogFile, err := setup.PrepareSetupLogFile()
-	if err != nil {
-		return err
-	}
-
 	if goruntime.GOOS == "linux" {
-		color.Info.Println("Setting up valet-sh on Linux\n")
-		return setupLinux(vshUser, vshGroup, setupLogFile)
+		utils.Println("Setting up valet-sh on Linux\n")
+		return setupLinux(vshUser, vshGroup)
 	} else if goruntime.GOOS == "darwin" {
 		isMacARM := strings.HasPrefix(arch, "arm")
 		if isMacARM {
-			color.Info.Println("Setting up valet-sh on macOS (Apple Silicon)\n")
+			utils.Println("Setting up valet-sh on macOS (Apple Silicon)\n")
 		} else {
-			color.Info.Println("Setting up valet-sh on macOS (Intel)\n")
+			utils.Println("Setting up valet-sh on macOS (Intel)\n")
 		}
-		return setupMacOS(vshUser, vshGroup, homebrewPrefix, isMacARM, setupLogFile)
+		return setupMacOS(vshUser, vshGroup, homebrewPrefix, isMacARM)
 	}
 
 	return nil
 }
 
-func setupLinux(vshUser, vshGroup string, logFile *os.File) error {
+func setupLinux(vshUser, vshGroup string) error {
 	if err := utils.RequestSudoAccess(); err != nil {
 		return err
 	}
 
 	shouldInstall := true
 	if utils.PathExists(constants.VshBasePath) || utils.PathExists(constants.VshVenvPath) {
-		fmt.Println("You already have valet-sh installed, do you want to reinstall? (y/N)")
+		utils.Println("You already have valet-sh installed, do you want to reinstall? (y/N)")
 		var response string
 		fmt.Scanln(&response)
 		if response != "y" {
@@ -104,19 +98,19 @@ func setupLinux(vshUser, vshGroup string, logFile *os.File) error {
 	}
 
 	if shouldInstall {
-		if err := setup.InstallLinuxDependencies(logFile); err != nil {
+		if err := setup.InstallLinuxDependencies(); err != nil {
 			return err
 		}
 
-		if err := setup.PrepareVshDirectory(vshUser, vshGroup, logFile); err != nil {
+		if err := setup.PrepareVshDirectory(vshUser, vshGroup); err != nil {
 			return err
 		}
 
-		if err := setup.SetupRepository(logFile); err != nil {
+		if err := setup.SetupRepository(); err != nil {
 			return err
 		}
 
-		if err := setup.CreateSymlinks(vshUser, logFile); err != nil {
+		if err := setup.CreateSymlinks(vshUser); err != nil {
 			return err
 		}
 
@@ -131,14 +125,14 @@ func setupLinux(vshUser, vshGroup string, logFile *os.File) error {
 	return nil
 }
 
-func setupMacOS(vshUser, vshGroup, homebrewPrefix string, isMacARM bool, logFile *os.File) error {
+func setupMacOS(vshUser, vshGroup, homebrewPrefix string, isMacARM bool) error {
 	if err := utils.RequestSudoAccess(); err != nil {
 		return err
 	}
 
 	shouldInstall := true
 	if utils.PathExists(constants.VshBasePath) || utils.PathExists(constants.VshVenvPath) {
-		fmt.Println("You already have valet-sh installed, do you want to reinstall? (y/N)")
+		utils.Println("You already have valet-sh installed, do you want to reinstall? (y/N)")
 		var response string
 		fmt.Scanln(&response)
 		if response != "y" {
@@ -159,26 +153,25 @@ func setupMacOS(vshUser, vshGroup, homebrewPrefix string, isMacARM bool, logFile
 	}
 
 	if shouldInstall {
-
 		if isMacARM {
-			if err := setup.InstallMacARMDependencies(homebrewPrefix, logFile); err != nil {
+			if err := setup.InstallMacARMDependencies(homebrewPrefix); err != nil {
 				return err
 			}
 		}
 
-		if err := setup.InstallMacOSDependencies(homebrewPrefix, logFile); err != nil {
+		if err := setup.InstallMacOSDependencies(homebrewPrefix); err != nil {
 			return err
 		}
 
-		if err := setup.PrepareVshDirectory(vshUser, vshGroup, logFile); err != nil {
+		if err := setup.PrepareVshDirectory(vshUser, vshGroup); err != nil {
 			return err
 		}
 
-		if err := setup.SetupRepository(logFile); err != nil {
+		if err := setup.SetupRepository(); err != nil {
 			return err
 		}
 
-		if err := setup.CreateSymlinks(vshUser, logFile); err != nil {
+		if err := setup.CreateSymlinks(vshUser); err != nil {
 			return err
 		}
 

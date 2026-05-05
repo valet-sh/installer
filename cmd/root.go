@@ -1,14 +1,12 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/gookit/color"
+	"github.com/valet-sh/valet-sh-installer/internal/prechecks"
+	"github.com/valet-sh/valet-sh-installer/internal/setup"
 	"github.com/valet-sh/valet-sh-installer/internal/utils"
 
 	"github.com/spf13/cobra"
-
-	"github.com/valet-sh/valet-sh-installer/internal/prechecks"
 )
 
 var version = "<snapshot>"
@@ -23,7 +21,7 @@ func preflightChecks(cmd *cobra.Command, args []string) error {
 	}
 
 	if err := prechecks.CheckForValet(); err != nil {
-		fmt.Printf("Valet is not installed. Run 'valet-sh-installer setup' to install it.\n")
+		utils.Printf("Valet is not installed. Run 'valet-sh-installer setup' to install it.\n")
 		return err
 	}
 
@@ -49,8 +47,11 @@ var rootCmd = &cobra.Command{
 	Version:       version,
 	SilenceErrors: false,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		err := preflightChecks(cmd, args)
+		if err := setup.PrepareSetupLogFile(); err != nil {
+			return err
+		}
 
+		err := preflightChecks(cmd, args)
 		if err != nil {
 			color.Error.Printf("Error: %s\n", err.Error())
 		}
@@ -69,5 +70,4 @@ func init() {
 	rootCmd.AddCommand(selfUpgradeCmd)
 
 	rootCmd.PersistentFlags().BoolVarP(&utils.DebugMode, "debug", "d", false, "enable debug output")
-
 }

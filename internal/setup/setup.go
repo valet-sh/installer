@@ -10,27 +10,27 @@ import (
 	"github.com/valet-sh/valet-sh-installer/internal/utils"
 )
 
-func PrepareSetupLogFile() (*os.File, error) {
+func PrepareSetupLogFile() error {
 	setupLogFile, err := os.Create(constants.VshInstallLog)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create setup log file: %w", err)
+		return fmt.Errorf("failed to create setup log file: %w", err)
 	}
 
 	utils.LogFile = setupLogFile
 
-	return setupLogFile, nil
+	return nil
 }
 
-func PrepareVshDirectory(vshUser, vshGroup string, logFile *os.File) error {
+func PrepareVshDirectory(vshUser, vshGroup string) error {
 	if _, err := os.Stat(constants.VshPath); os.IsNotExist(err) {
-		if err := utils.RunCommand("sudo", []string{"mkdir", "-p", constants.VshPath}, logFile); err != nil {
+		if err := utils.RunCommand("sudo", []string{"mkdir", "-p", constants.VshPath}); err != nil {
 			return fmt.Errorf("failed to create install directory: %w", err)
 		}
 	} else if err != nil {
 		return fmt.Errorf("failed to check if directory exists: %w", err)
 	}
 
-	if err := utils.RunCommand("sudo", []string{"chown", fmt.Sprintf("%s:%s", vshUser, vshGroup), constants.VshPath}, logFile); err != nil {
+	if err := utils.RunCommand("sudo", []string{"chown", fmt.Sprintf("%s:%s", vshUser, vshGroup), constants.VshPath}); err != nil {
 		return fmt.Errorf("failed to set permissions on install directory: %w", err)
 	}
 
@@ -48,7 +48,6 @@ func RemoveVshAnsibleFactsFile() error {
 func RemoveVshRepository() error {
 	if _, err := os.Stat(constants.VshBasePath); err == nil {
 		utils.Println("Removing existing repository...")
-		//fmt.Println("Removing existing repository...")
 		if err := os.RemoveAll(constants.VshBasePath); err != nil {
 			return fmt.Errorf("failed to remove existing repository: %w", err)
 		}
@@ -60,7 +59,6 @@ func RemoveVshRepository() error {
 func RemoveVshVenv() error {
 	if _, err := os.Stat(constants.VshVenvPath); err == nil {
 		utils.Println("Removing existing virtual environment...")
-		//fmt.Println("Removing existing virtual environment...")
 		if err := os.RemoveAll(constants.VshVenvPath); err != nil {
 			return fmt.Errorf("failed to remove existing runtime: %w", err)
 		}
@@ -69,13 +67,13 @@ func RemoveVshVenv() error {
 	return nil
 }
 
-func SetupVshRepository(setupLogFile *os.File) error {
+func SetupVshRepository() error {
 	if _, err := os.Stat(filepath.Join(constants.VshBasePath, ".git")); os.IsNotExist(err) {
 		if err := git.CloneRepository(constants.VshGithubRepoUrl, constants.VshBasePath); err != nil {
 			return fmt.Errorf("failed to clone repository: %w", err)
 		}
 	} else {
-		if err := utils.RunCommand("git", []string{"-C", constants.VshBasePath, "pull"}, setupLogFile); err != nil {
+		if err := utils.RunCommand("git", []string{"-C", constants.VshBasePath, "pull"}); err != nil {
 			return fmt.Errorf("failed to update repository: %w", err)
 		}
 	}

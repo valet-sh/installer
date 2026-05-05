@@ -2,19 +2,17 @@ package setup
 
 import (
 	"fmt"
-	"github.com/valet-sh/valet-sh-installer/internal/utils"
 	"os"
 	"path/filepath"
 
 	"github.com/valet-sh/valet-sh-installer/constants"
 	"github.com/valet-sh/valet-sh-installer/internal/git"
+	"github.com/valet-sh/valet-sh-installer/internal/utils"
 )
 
-func SetupRepository(logFile *os.File) error {
+func SetupRepository() error {
 	if _, err := os.Stat(constants.VshBasePath); err == nil {
-
 		utils.Println("Removing existing repository2...")
-		//fmt.Println("Removing existing repository...")
 		if err := os.RemoveAll(constants.VshBasePath); err != nil {
 			return fmt.Errorf("failed to remove existing repository: %w", err)
 		}

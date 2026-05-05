@@ -26,15 +26,7 @@ var updateCmd = &cobra.Command{
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-
-		updateLogFile, err := setup.PrepareSetupLogFile()
-		if err != nil {
-			return err
-		}
-
-		utils.LogFile = updateLogFile
-
-		err = runUpdate()
+		err := runUpdate()
 		if err != nil {
 			color.Error.Printf("Error: %s\n", err.Error())
 			return err
@@ -87,7 +79,7 @@ func updateNextBranch(repoPath string) error {
 		return fmt.Errorf("failed to pull latest changes: %w", err)
 	}
 
-	color.Info.Println("valet-sh: Successfully pulled latest changes from next branch")
+	utils.Println("Successfully pulled latest changes from next branch")
 
 	return runtimeUpdate()
 }
@@ -159,19 +151,19 @@ func updateVersionBranch(repoPath string, branchName string, majorVersion string
 		latestTag = latestVersion[1:]
 	}
 
-	utils.Printf("Latest version available: %s | current: %s\n", latestTag, currentRelease)
+	utils.Debugf("Latest version available: %s | current: %s\n", latestTag, currentRelease)
 
 	compareResult := utils.CompareVersions(currentRelease, latestTag)
 
 	if compareResult < 0 {
-		utils.Printf("Updating valet-sh from version %s to %s\n", currentRelease, latestTag)
+		utils.Debugf("Updating valet-sh from version %s to %s\n", currentRelease, latestTag)
 		if err := git.CheckoutBranch(repoPath, latestTag); err != nil {
 			return fmt.Errorf("failed to checkout version %s: %w", latestTag, err)
 		}
 
-		color.Info.Printf("valet-sh successfully updated to version %s\n\n", latestTag)
+		utils.Printf("valet-sh successfully updated to version %s\n\n", latestTag)
 	} else {
-		color.Info.Printf("Already on latest version %s\n", currentRelease)
+		utils.Printf("Already on latest version %s\n", currentRelease)
 	}
 
 	return runtimeUpdate()
@@ -195,13 +187,13 @@ func runtimeUpdate() error {
 
 	if status.NeedsUpdate || status.PackageChanged {
 
-		fmt.Printf("Updating valet-sh runtime to version %s\n", status.CurrentVersion)
+		utils.Printf("Updating valet-sh runtime to version %s\n", status.CurrentVersion)
 
 		utils.Println("Updating runtime")
 
 		url := fmt.Sprintf("https://github.com/valet-sh/runtime/releases/download/%s/%s.tar.gz", status.CurrentVersion, status.CurrentPackage)
 
-		utils.Printf("Check if runtime release '%s' exists\n", url)
+		utils.Debugf("Check if runtime release '%s' exists\n", url)
 		resp, err := http.Head(url)
 		if err != nil {
 			return fmt.Errorf("failed to check runtime release: %w", err)
@@ -215,7 +207,7 @@ func runtimeUpdate() error {
 		}
 
 		tmpDir := constants.VshVenvTmpPath
-		utils.Println("Cleaning up temporary directory")
+		utils.Debug("Cleaning up temporary directory")
 
 		err = os.RemoveAll(tmpDir)
 		if err != nil {
@@ -227,7 +219,7 @@ func runtimeUpdate() error {
 		venvExists := !os.IsNotExist(err)
 
 		if venvExists {
-			utils.Println("Backing up current venv")
+			utils.Debug("Backing up current venv")
 			err = os.Rename(venvDir, tmpDir)
 			if err != nil {
 				return fmt.Errorf("failed to backup current venv: %w", err)
@@ -267,7 +259,7 @@ func runtimeUpdate() error {
 			return fmt.Errorf("failed to update version file: %w", err)
 		}
 
-		color.Info.Printf("valet-sh runtime: successfully updated to '%s'\n\n", status.CurrentVersion)
+		utils.Printf("valet-sh runtime: successfully updated to '%s'\n\n", status.CurrentVersion)
 
 		if venvExists {
 			err = os.RemoveAll(tmpDir)
@@ -277,7 +269,7 @@ func runtimeUpdate() error {
 		}
 
 	} else {
-		color.Info.Println("valet-sh runtime: already up to date\n")
+		utils.Println("valet-sh runtime: already up to date\n")
 	}
 
 	return nil
@@ -290,22 +282,17 @@ func UpdateDependencies() error {
 		homebrewPrefix = "/opt/homebrew"
 	}
 
-	setupLogFile, err := setup.PrepareSetupLogFile()
-	if err != nil {
-		return err
-	}
-
 	if goruntime.GOOS == "linux" {
-		color.Info.Println("Updating Linux dependencies\n")
-		return setup.InstallLinuxDependencies(setupLogFile)
+		utils.Println("Updating Linux dependencies\n")
+		return setup.InstallLinuxDependencies()
 	} else if goruntime.GOOS == "darwin" {
 		isMacARM := strings.HasPrefix(arch, "arm")
 		if isMacARM {
-			color.Info.Println("Updating macOS (ARM) dependencies\n")
-			return setup.InstallMacARMDependencies(homebrewPrefix, setupLogFile)
+			utils.Println("Updating macOS (ARM) dependencies\n")
+			return setup.InstallMacARMDependencies(homebrewPrefix)
 		} else {
-			color.Info.Println("Updating macOS (Intel) dependencies\n")
-			return setup.InstallMacOSDependencies(homebrewPrefix, setupLogFile)
+			utils.Println("Updating macOS (Intel) dependencies\n")
+			return setup.InstallMacOSDependencies(homebrewPrefix)
 		}
 	}
 

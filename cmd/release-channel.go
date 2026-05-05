@@ -59,7 +59,7 @@ func setReleaseChannel() error {
 				Title("Select release channel to update from").
 				Options(
 					currentMarker("2.x (stable)", "2.x", currentReleaseChannel),
-					// currentMarker("3.x (preview)", "3.x", currentReleaseChannel),
+					currentMarker("3.x (preview)", "3.x", currentReleaseChannel),
 					currentMarker("next (development)", "next", currentReleaseChannel),
 				).
 				Value(&selectedReleaseChannel),
@@ -80,8 +80,8 @@ func processBranchSelection(branch string) error {
 		return useStableChannel()
 	case "next":
 		return useNextChannel()
-		//case "3.x":
-		//		return usePreviewChannel()
+	case "3.x":
+		return usePreviewChannel()
 	default:
 		return fmt.Errorf("invalid branch: %s, must be 'stable' or 'next'", branch)
 	}
@@ -115,7 +115,7 @@ func useStableChannel() error {
 	if err != nil {
 		return fmt.Errorf("failed to switch to stable channel: %w", err)
 	}
-	color.Info.Println("\nSuccessfully switched to stable channel\n")
+	utils.Println("\nSuccessfully switched to stable channel\n")
 
 	return runUpdate()
 }
@@ -132,7 +132,7 @@ func usePreviewChannel() error {
 	if err != nil {
 		return fmt.Errorf("failed to switch to preview channel: %w", err)
 	}
-	color.Info.Println("\nSuccessfully switched to preview channel\n")
+	utils.Printf("\nSuccessfully switched to preview channel\n")
 
 	return runUpdate()
 }
@@ -150,7 +150,7 @@ func useNextChannel() error {
 		return fmt.Errorf("failed to switch to next channel: %w", err)
 	}
 
-	color.Info.Println("\nSuccessfully switched to next channel\n")
+	utils.Println("\nSuccessfully switched to next channel\n")
 
 	return runUpdate()
 }
