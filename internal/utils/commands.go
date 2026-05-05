@@ -5,10 +5,10 @@ import (
     "os/exec"
 )
 
-func RunCommand(command string, args []string, logFile *os.File) error {
+func RunCommand(command string, args []string) error {
     cmd := exec.Command(command, args...)
-    cmd.Stdout = logFile
-    cmd.Stderr = logFile
+    cmd.Stdout = LogFile
+    cmd.Stderr = LogFile
     return cmd.Run()
 }
 

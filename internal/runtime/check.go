@@ -42,7 +42,7 @@ func CheckRuntime() (*RuntimeStatus, error) {
 	}
 
 	if len(targetRuntimeVersion) == 0 {
-		utils.Printf("Using installed runtime version '%s' as target version\n", string(installedRuntimeVersion))
+		utils.Debugf("Using installed runtime version '%s' as target version\n", string(installedRuntimeVersion))
 		targetRuntimeVersion = installedRuntimeVersion
 	}
 
@@ -69,24 +69,24 @@ func CheckRuntime() (*RuntimeStatus, error) {
 		PackageChanged: packageName != targetPackage,
 	}
 
-	utils.Printf("valet-sh: Runtime version: %s\n", status.CurrentVersion)
-	utils.Printf("valet-sh-venv: Runtime Version: %s\n", status.TargetVersion)
-	utils.Printf("OS: %s\n", osName)
-	utils.Printf("Codename: %s\n", osCodename)
-	utils.Printf("Architecture: %s\n", arch)
-	utils.Printf("Current Package: %s\n", status.CurrentPackage)
-	utils.Printf("Target Package: %s\n", status.PackageName)
+	utils.Debugf("valet-sh: Runtime version: %s\n", status.CurrentVersion)
+	utils.Debugf("valet-sh-venv: Runtime Version: %s\n", status.TargetVersion)
+	utils.Debugf("OS: %s\n", osName)
+	utils.Debugf("Codename: %s\n", osCodename)
+	utils.Debugf("Architecture: %s\n", arch)
+	utils.Debugf("Current Package: %s\n", status.CurrentPackage)
+	utils.Debugf("Target Package: %s\n", status.PackageName)
 
 	if status.NeedsUpdate && status.PackageChanged {
 		utils.Println("\nBoth runtime version and package need to be updated")
-		utils.Printf("Version update from %s to %s and package change from %s to %s required\n",
+		utils.Debugf("Version update from %s to %s and package change from %s to %s required\n",
 			status.TargetVersion, status.CurrentVersion, status.PackageName, status.CurrentPackage)
 	} else if status.NeedsUpdate {
 		utils.Println("\nVenv runtime version is different from the installed runtime version")
-		utils.Printf("New runtime version %s is required\n", status.CurrentVersion)
+		utils.Debugf("New runtime version %s is required\n", status.CurrentVersion)
 	} else if status.PackageChanged {
 		utils.Println("\nRuntime package needs to be updated")
-		utils.Printf("Package change from %s to %s is required\n", status.PackageName, status.CurrentPackage)
+		utils.Debugf("Package change from %s to %s is required\n", status.PackageName, status.CurrentPackage)
 	} else {
 		utils.Println("Runtime version and package are up to date\n")
 	}
@@ -189,7 +189,7 @@ func BuildPackageName(osName, osCodename, arch string) string {
 }
 
 func CheckRuntimeFile(path string, isRequired bool) ([]byte, error) {
-	utils.Printf("Checking file: '%s'\n", path)
+	utils.Debugf("Checking file: '%s'\n", path)
 
 	content, err := os.ReadFile(path)
 	if err != nil {
@@ -197,12 +197,12 @@ func CheckRuntimeFile(path string, isRequired bool) ([]byte, error) {
 			if isRequired {
 				return nil, fmt.Errorf("required file %s does not exist", path)
 			}
-			utils.Printf("File '%s' does not exist, but it's not required\n", path)
+			utils.Debugf("File '%s' does not exist, but it's not required\n", path)
 			return nil, nil
 		}
 		return nil, fmt.Errorf("error accessing file %s: %w", path, err)
 	}
 
-	utils.Printf("Successfully read '%s' (%d bytes)\n", path, len(content))
+	utils.Debugf("Successfully read '%s' (%d bytes)\n", path, len(content))
 	return content, nil
 }
