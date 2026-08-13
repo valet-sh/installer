@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gookit/color"
+	"github.com/valet-sh/valet-sh-installer/internal/migration"
 	"github.com/valet-sh/valet-sh-installer/internal/utils"
 
 	"github.com/charmbracelet/huh"
@@ -134,7 +135,15 @@ func usePreviewChannel() error {
 	}
 	utils.Printf("\nSuccessfully switched to preview channel\n")
 
-	return runUpdate()
+	if err := runUpdate(); err != nil {
+		return fmt.Errorf("failed to update after switching to preview channel: %w", err)
+	}
+
+	if err := migration.Cli(); err != nil {
+		return fmt.Errorf("failed to migrate CLI after switching to preview channel: %w", err)
+	}
+
+	return nil
 }
 
 func useNextChannel() error {
