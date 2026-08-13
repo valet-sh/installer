@@ -43,7 +43,7 @@ func getLatestCliBinary(version string) error {
 		return fmt.Errorf("unsupported platform: %s/%s", runtime.GOOS, runtime.GOARCH)
 	}
 	binaryURL := fmt.Sprintf(
-		"https://github.com/mdecamposmendes/cli/releases/download/%s/%s",
+		"https://github.com/valet-sh/go-cli/releases/download/%s/%s",
 		version,
 		binaryName,
 	)
