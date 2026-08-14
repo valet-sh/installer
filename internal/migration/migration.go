@@ -1,11 +1,15 @@
 package migration
 
 import (
+	"bufio"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/valet-sh/valet-sh-installer/constants"
@@ -19,12 +23,6 @@ const (
 )
 
 func Cli() error {
-	if _, err := os.Stat(constants.VshOldCliPath); err == nil {
-		if err := os.Remove(constants.VshOldCliPath); err != nil {
-			return fmt.Errorf("failed to remove old valet.sh CLI: %w", err)
-		}
-	}
-
 	latestCliVersion, err := git.FetchLatestCliTag(apiTimeout)
 	if err != nil {
 		return fmt.Errorf("failed to fetch latest CLI version: %w", err)
@@ -32,6 +30,27 @@ func Cli() error {
 
 	if err := getLatestCliBinary(latestCliVersion); err != nil {
 		return fmt.Errorf("failed to download latest binary: %w", err)
+	}
+
+	if _, err := os.Stat(constants.VshOldCliPath); err == nil {
+		if err := os.Remove(constants.VshOldCliPath); err != nil {
+			return fmt.Errorf("failed to remove old valet.sh CLI: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func RunInstall(migrationConfirmed bool) error {
+	utils.Println("Running install on the new valet.sh CLI")
+
+	var env []string
+	if migrationConfirmed {
+		env = []string{"VALET_MIGRATE=1"}
+	}
+
+	if err := utils.RunInteractiveCommandWithEnv(constants.VshCliBinaryPath, []string{"install"}, env); err != nil {
+		return fmt.Errorf("failed to run install: %w", err)
 	}
 
 	return nil
@@ -42,13 +61,10 @@ func getLatestCliBinary(version string) error {
 	if binaryName == "" {
 		return fmt.Errorf("unsupported platform: %s/%s", runtime.GOOS, runtime.GOARCH)
 	}
-	binaryURL := fmt.Sprintf(
-		"https://github.com/valet-sh/go-cli/releases/download/%s/%s",
-		version,
-		binaryName,
-	)
+	releaseURL := fmt.Sprintf("https://github.com/valet-sh/go-cli/releases/download/%s", version)
+
 	client := &http.Client{Timeout: apiTimeout}
-	resp, err := client.Get(binaryURL)
+	resp, err := client.Get(fmt.Sprintf("%s/%s", releaseURL, binaryName))
 	if err != nil {
 		return fmt.Errorf("failed to download binary: %w", err)
 	}
@@ -73,31 +89,65 @@ func getLatestCliBinary(version string) error {
 	}
 	defer os.Remove(tempFile.Name())
 
-	if _, err := io.Copy(tempFile, resp.Body); err != nil {
+	hasher := sha256.New()
+	if _, err := io.Copy(io.MultiWriter(tempFile, hasher), resp.Body); err != nil {
 		tempFile.Close()
 		return fmt.Errorf("failed to write binary: %w", err)
 	}
 	tempFile.Close()
 
+	expectedChecksum, err := fetchExpectedChecksum(releaseURL, binaryName)
+	if err != nil {
+		return fmt.Errorf("failed to fetch checksum: %w", err)
+	}
+	actualChecksum := hex.EncodeToString(hasher.Sum(nil))
+	if actualChecksum != expectedChecksum {
+		return fmt.Errorf("checksum mismatch for downloaded CLI binary: expected %s, got %s", expectedChecksum, actualChecksum)
+	}
+
+	if err := os.Chmod(tempFile.Name(), 0755); err != nil {
+		return fmt.Errorf("failed to set permissions: %w", err)
+	}
+
 	if err := os.Rename(tempFile.Name(), constants.VshCliBinaryPath); err != nil {
 		return fmt.Errorf("failed to move binary: %w", err)
 	}
 
-	if err := os.Chmod(constants.VshCliBinaryPath, 0755); err != nil {
-		return fmt.Errorf("failed to set permissions: %w", err)
-	}
 	if err := UpdateSymlink(constants.VshCliBinaryPath); err != nil {
 		return fmt.Errorf("failed to update symlink: %w", err)
 	}
 	return nil
 }
 
+func fetchExpectedChecksum(releaseURL string, binaryName string) (string, error) {
+	client := &http.Client{Timeout: apiTimeout}
+	resp, err := client.Get(releaseURL + "/checksums.txt")
+	if err != nil {
+		return "", fmt.Errorf("failed to download checksums: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to download checksums: HTTP %d", resp.StatusCode)
+	}
+
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		fields := strings.Fields(scanner.Text())
+		if len(fields) >= 2 && fields[1] == binaryName {
+			return fields[0], nil
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	return "", fmt.Errorf("checksum for %s not found in checksums.txt", binaryName)
+}
+
 func getBinaryName() string {
 	switch runtime.GOOS {
 	case "darwin":
 		switch runtime.GOARCH {
-		case "amd64":
-			return "valet-darwin-amd64"
 		case "arm64":
 			return "valet-darwin-arm64"
 		}
@@ -105,8 +155,6 @@ func getBinaryName() string {
 		switch runtime.GOARCH {
 		case "amd64":
 			return "valet-linux-amd64"
-		case "arm64":
-			return "valet-linux-arm64"
 		}
 	}
 	return ""
