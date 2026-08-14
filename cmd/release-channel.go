@@ -60,7 +60,7 @@ func setReleaseChannel() error {
 				Title("Select release channel to update from").
 				Options(
 					currentMarker("2.x (stable)", "2.x", currentReleaseChannel),
-					currentMarker("3.x (preview)", "3.x", currentReleaseChannel),
+					currentMarker("3.x", "3.x", currentReleaseChannel),
 					currentMarker("next (development)", "next", currentReleaseChannel),
 				).
 				Value(&selectedReleaseChannel),
@@ -82,7 +82,7 @@ func processBranchSelection(branch string) error {
 	case "next":
 		return useNextChannel()
 	case "3.x":
-		return usePreviewChannel()
+		return use3xChannel()
 	default:
 		return fmt.Errorf("invalid branch: %s, must be 'stable' or 'next'", branch)
 	}
@@ -121,29 +121,55 @@ func useStableChannel() error {
 	return runUpdate()
 }
 
-func usePreviewChannel() error {
-	utils.Println("Switching to preview channel")
+func use3xChannel() error {
+
+	utils.Println("Checking requirements for 3.x channel")
+
+	if err := prechecks.Requirements3xCheck(); err != nil {
+		fmt.Println("Requirements check failed:", err)
+		os.Exit(1)
+	}
+
+	migrationConfirmed, err := prechecks.CheckMigration()
+	if err != nil {
+		return err
+	}
+
+	utils.Println("Switching to 3.x channel")
 
 	if err := prechecks.CheckForEtcDirectory(); err != nil {
 		return err
 	}
 
 	releaseChannelFilePath := filepath.Join(constants.VshEtcPath, constants.ReleaseChannelFile)
-	err := os.WriteFile(releaseChannelFilePath, []byte("3.x"), 0644)
-	if err != nil {
-		return fmt.Errorf("failed to switch to preview channel: %w", err)
+	previousReleaseChannel := getCurrentReleaseChannel()
+
+	if err := os.WriteFile(releaseChannelFilePath, []byte("3.x"), 0644); err != nil {
+		return fmt.Errorf("failed to switch to 3.x channel: %w", err)
 	}
-	utils.Printf("\nSuccessfully switched to preview channel\n")
+	utils.Printf("\nSuccessfully switched to 3.x channel\n")
 
 	if err := runUpdate(); err != nil {
-		return fmt.Errorf("failed to update after switching to preview channel: %w", err)
+		revertReleaseChannel(releaseChannelFilePath, previousReleaseChannel)
+		return fmt.Errorf("failed to update after switching to 3.x channel: %w", err)
 	}
 
 	if err := migration.Cli(); err != nil {
-		return fmt.Errorf("failed to migrate CLI after switching to preview channel: %w", err)
+		revertReleaseChannel(releaseChannelFilePath, previousReleaseChannel)
+		return fmt.Errorf("failed to migrate CLI after switching to 3.x channel: %w", err)
+	}
+
+	if err := migration.RunInstall(migrationConfirmed); err != nil {
+		return fmt.Errorf("failed to run install on the new valet.sh CLI: %w", err)
 	}
 
 	return nil
+}
+
+func revertReleaseChannel(releaseChannelFilePath string, previousReleaseChannel string) {
+	if err := os.WriteFile(releaseChannelFilePath, []byte(previousReleaseChannel), 0644); err != nil {
+		utils.Printf("warning: failed to restore previous release channel %q: %s\n", previousReleaseChannel, err.Error())
+	}
 }
 
 func useNextChannel() error {
