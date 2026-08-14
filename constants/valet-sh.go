@@ -12,6 +12,8 @@ const (
 	VersionFileName    = ".version"
 	ValetStableVersion = "2.x"
 
+	VshServiceFile      = VshEtcPath + "/services.yml"
+	VshBundlesFile      = VshEtcPath + "/bundles.yml"
 	VshUrl              = "https://valet.sh"
 	HomebrewPrefix      = "/usr/local"
 	VshInstallLog       = "/tmp/valet-sh-install.log"
@@ -21,4 +23,7 @@ const (
 	VshOldCliPath       = "/usr/local/bin/valet-sh"
 	VshCliPath          = "/usr/local/valet-sh/bin"
 	VshCliBinaryPath    = "/usr/local/valet-sh/bin/valet-sh"
+
+	Vsh3xMinMacOSVersion = "26.0"
+	Vsh3xMinLinuxVersion = "24.04"
 )
