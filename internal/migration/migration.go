@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	apiTimeout = 3 * time.Second
+	apiTimeout      = 3 * time.Second
+	downloadTimeout = 2 * time.Minute
 )
 
 func Cli() error {
@@ -63,7 +64,7 @@ func getLatestCliBinary(version string) error {
 	}
 	releaseURL := fmt.Sprintf("https://github.com/valet-sh/go-cli/releases/download/%s", version)
 
-	client := &http.Client{Timeout: apiTimeout}
+	client := &http.Client{Timeout: downloadTimeout}
 	resp, err := client.Get(fmt.Sprintf("%s/%s", releaseURL, binaryName))
 	if err != nil {
 		return fmt.Errorf("failed to download binary: %w", err)
@@ -120,7 +121,7 @@ func getLatestCliBinary(version string) error {
 }
 
 func fetchExpectedChecksum(releaseURL string, binaryName string) (string, error) {
-	client := &http.Client{Timeout: apiTimeout}
+	client := &http.Client{Timeout: downloadTimeout}
 	resp, err := client.Get(releaseURL + "/checksums.txt")
 	if err != nil {
 		return "", fmt.Errorf("failed to download checksums: %w", err)
