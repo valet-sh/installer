@@ -42,7 +42,7 @@ func Cli() error {
 }
 
 func RunInstall(migrationConfirmed bool) error {
-	utils.Println("Running install on the new valet.sh CLI")
+	utils.Println("Running install on the valet.sh Go-CLI")
 
 	var env []string
 	if migrationConfirmed {
