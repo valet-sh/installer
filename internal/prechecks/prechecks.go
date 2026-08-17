@@ -223,7 +223,7 @@ var migrationText = `
   WARNING: Existing services will be uninstalled and NO database
   dumps will be generated automatically.
 
-  Please backup all critical database and application data.
+  Please backup all critical databases.
 
   Post-Migration Environment:
   • Base Services Installed: Nginx, Dnsmasq, Mailpit, Container Runtime
@@ -232,8 +232,7 @@ var migrationText = `
     (Must be re-installed on demand)
 
   For migration support and manual backup steps, visit:
-  https://valet.sh/3.x/how-to-articles/migrating-from-2.x-to-3.x
-
+  https://valet.sh/3.x/getting-started/upgrade-from-2x/
 
 `
 
