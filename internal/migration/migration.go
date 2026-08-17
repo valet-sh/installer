@@ -161,10 +161,8 @@ func getBinaryName() string {
 	return ""
 }
 
-func UpdateSymlink(newBinaryPath string) error {
-	symlinkPath := "/usr/local/bin/valet.sh"
-
-	if err := utils.RunCommand("sudo", []string{"ln", "-sf", newBinaryPath, symlinkPath}); err != nil {
+func UpdateSymlink(target string) error {
+	if err := utils.RunCommand("sudo", []string{"ln", "-sf", target, constants.VshCliSymlinkPath}); err != nil {
 		return fmt.Errorf("failed to update symlink: %w", err)
 	}
 

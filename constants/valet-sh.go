@@ -23,6 +23,7 @@ const (
 	VshOldCliPath       = "/usr/local/bin/valet-sh"
 	VshCliPath          = "/usr/local/valet-sh/bin"
 	VshCliBinaryPath    = "/usr/local/valet-sh/bin/valet-sh"
+	VshCliSymlinkPath   = "/usr/local/bin/valet.sh"
 
 	Vsh3xMinMacOSVersion = "26.0"
 	Vsh3xMinLinuxVersion = "24.04"

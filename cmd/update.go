@@ -26,7 +26,8 @@ var updateCmd = &cobra.Command{
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		err := runUpdate()
+		venvBackupPath, err := runUpdate()
+		cleanupVenvBackup(venvBackupPath)
 		if err != nil {
 			color.Error.Printf("Error: %s\n", err.Error())
 			return err
@@ -38,10 +39,10 @@ var updateCmd = &cobra.Command{
 func init() {
 }
 
-func runUpdate() error {
+func runUpdate() (string, error) {
 	repoPath := constants.VshBasePath
 	if err := checkIfRepoExists(repoPath); err != nil {
-		return err
+		return "", err
 	}
 
 	releaseChannel := getCurrentReleaseChannel()
@@ -56,7 +57,16 @@ func runUpdate() error {
 
 		return updateVersionBranch(repoPath, releaseChannel, majorVersion)
 	} else {
-		return fmt.Errorf("invalid release channel: %s", releaseChannel)
+		return "", fmt.Errorf("invalid release channel: %s", releaseChannel)
+	}
+}
+
+func cleanupVenvBackup(backupPath string) {
+	if backupPath == "" {
+		return
+	}
+	if err := os.RemoveAll(backupPath); err != nil {
+		utils.Printf("warning: failed to remove runtime backup at %s: %s\n", backupPath, err.Error())
 	}
 }
 
@@ -68,15 +78,15 @@ func checkIfRepoExists(repoPath string) error {
 	return nil
 }
 
-func updateNextBranch(repoPath string) error {
+func updateNextBranch(repoPath string) (string, error) {
 	utils.Println("Updating valet-sh to the latest version on the next branch")
 
 	if err := git.CheckoutBranch(repoPath, "next"); err != nil {
-		return fmt.Errorf("failed to checkout next branch: %w", err)
+		return "", fmt.Errorf("failed to checkout next branch: %w", err)
 	}
 
 	if err := git.PullLatest(repoPath); err != nil {
-		return fmt.Errorf("failed to pull latest changes: %w", err)
+		return "", fmt.Errorf("failed to pull latest changes: %w", err)
 	}
 
 	utils.Println("Successfully pulled latest changes from next branch")
@@ -84,25 +94,25 @@ func updateNextBranch(repoPath string) error {
 	return runtimeUpdate()
 }
 
-func updateVersionBranch(repoPath string, branchName string, majorVersion string) error {
+func updateVersionBranch(repoPath string, branchName string, majorVersion string) (string, error) {
 	utils.Printf("Updating valet-sh to the latest version on the %s branch\n", branchName)
 
 	if err := git.FetchTags(repoPath); err != nil {
-		return fmt.Errorf("failed to fetch tags: %w", err)
+		return "", fmt.Errorf("failed to fetch tags: %w", err)
 	}
 
 	currentRelease, err := git.GetCurrentReleaseTag(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to get current release: %w", err)
+		return "", fmt.Errorf("failed to get current release: %w", err)
 	}
 
 	tags, err := git.GetAllTags(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to get all tags: %w", err)
+		return "", fmt.Errorf("failed to get all tags: %w", err)
 	}
 
 	if len(tags) == 0 {
-		return fmt.Errorf("no valid releases found")
+		return "", fmt.Errorf("no valid releases found")
 	}
 
 	semverRegex := buildSemverRegex(majorVersion)
@@ -118,25 +128,25 @@ func updateVersionBranch(repoPath string, branchName string, majorVersion string
 		fmt.Scanln(&response)
 
 		if response != "y" {
-			return nil
+			return "", nil
 		} else {
 			branchExists, err := git.DoesBranchExist(repoPath, branchName)
 			if err != nil {
-				return fmt.Errorf("error checking if branch %s exists: %w", branchName, err)
+				return "", fmt.Errorf("error checking if branch %s exists: %w", branchName, err)
 			}
 
 			if !branchExists {
-				return fmt.Errorf("release channel %s does not exist - please select a valid release channel", branchName)
+				return "", fmt.Errorf("release channel %s does not exist - please select a valid release channel", branchName)
 			}
 
 			utils.Printf("Switching to %s branch for testing without a release\n", branchName)
 
 			if err := git.CheckoutBranch(repoPath, branchName); err != nil {
-				return fmt.Errorf("failed to checkout %s branch: %w", branchName, err)
+				return "", fmt.Errorf("failed to checkout %s branch: %w", branchName, err)
 			}
 
 			if err := git.PullLatest(repoPath); err != nil {
-				return fmt.Errorf("failed to pull latest changes: %w", err)
+				return "", fmt.Errorf("failed to pull latest changes: %w", err)
 			}
 
 			utils.Printf("Successfully switched to %s branch for testing\n", branchName)
@@ -158,7 +168,7 @@ func updateVersionBranch(repoPath string, branchName string, majorVersion string
 	if compareResult < 0 {
 		utils.Debugf("Updating valet-sh from version %s to %s\n", currentRelease, latestTag)
 		if err := git.CheckoutBranch(repoPath, latestTag); err != nil {
-			return fmt.Errorf("failed to checkout version %s: %w", latestTag, err)
+			return "", fmt.Errorf("failed to checkout version %s: %w", latestTag, err)
 		}
 
 		utils.Printf("valet-sh successfully updated to version %s\n\n", latestTag)
@@ -173,16 +183,16 @@ func buildSemverRegex(majorVersion string) string {
 	return fmt.Sprintf(`^(%s)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(\-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$`, majorVersion)
 }
 
-func runtimeUpdate() error {
+func runtimeUpdate() (string, error) {
 
 	utils.Println("Updating valet-sh dependencies")
 	if err := UpdateDependencies(); err != nil {
-		return fmt.Errorf("failed to update dependencies: %w", err)
+		return "", fmt.Errorf("failed to update dependencies: %w", err)
 	}
 
 	status, err := runtime.CheckRuntime()
 	if err != nil {
-		return fmt.Errorf("failed to check runtime: %w", err)
+		return "", fmt.Errorf("failed to check runtime: %w", err)
 	}
 
 	if status.NeedsUpdate || status.PackageChanged {
@@ -196,14 +206,14 @@ func runtimeUpdate() error {
 		utils.Debugf("Check if runtime release '%s' exists\n", url)
 		resp, err := http.Head(url)
 		if err != nil {
-			return fmt.Errorf("failed to check runtime release: %w", err)
+			return "", fmt.Errorf("failed to check runtime release: %w", err)
 		}
 
 		// @FIXME
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("runtime release not found: %s", url)
+			return "", fmt.Errorf("runtime release not found: %s", url)
 		}
 
 		tmpDir := constants.VshVenvTmpPath
@@ -211,7 +221,7 @@ func runtimeUpdate() error {
 
 		err = os.RemoveAll(tmpDir)
 		if err != nil {
-			return fmt.Errorf("failed to remove temporary directory: %w", err)
+			return "", fmt.Errorf("failed to remove temporary directory: %w", err)
 		}
 
 		venvDir := constants.VshVenvPath
@@ -222,19 +232,19 @@ func runtimeUpdate() error {
 			utils.Debug("Backing up current venv")
 			err = os.Rename(venvDir, tmpDir)
 			if err != nil {
-				return fmt.Errorf("failed to backup current venv: %w", err)
+				return "", fmt.Errorf("failed to backup current venv: %w", err)
 			}
 		}
 
 		utils.Printf("Downloading and unpacking new runtime '%s' ", status.CurrentVersion)
 		respDownload, err := http.Get(url)
 		if err != nil {
-			return fmt.Errorf("failed to download runtime release: %w", err)
+			return "", fmt.Errorf("failed to download runtime release: %w", err)
 		}
 		defer respDownload.Body.Close()
 
 		if respDownload.StatusCode != http.StatusOK {
-			return fmt.Errorf("bad status code:  %s", respDownload.Status)
+			return "", fmt.Errorf("bad status code:  %s", respDownload.Status)
 		}
 
 		err = utils.Untar(constants.VshPath, respDownload.Body)
@@ -242,37 +252,35 @@ func runtimeUpdate() error {
 			if venvExists {
 				err = os.RemoveAll(venvDir)
 				if err != nil {
-					return fmt.Errorf("failed to remove venv directory: %w", err)
+					return "", fmt.Errorf("failed to remove venv directory: %w", err)
 				}
 				err = os.Rename(tmpDir, venvDir)
 				if err != nil {
-					return fmt.Errorf("failed to move venv directory: %w", err)
+					return "", fmt.Errorf("failed to move venv directory: %w", err)
 				}
 			}
-			return fmt.Errorf("failed to extract runtime: %w", err)
+			return "", fmt.Errorf("failed to extract runtime: %w", err)
 		}
 
 		venvVersion := status.CurrentPackage + "-" + status.CurrentVersion
 		err = os.WriteFile(filepath.Join(constants.VshVenvPath, constants.VersionFileName),
 			[]byte(venvVersion), 0644)
 		if err != nil {
-			return fmt.Errorf("failed to update version file: %w", err)
+			return "", fmt.Errorf("failed to update version file: %w", err)
 		}
 
 		utils.Printf("valet-sh runtime: successfully updated to '%s'\n\n", status.CurrentVersion)
 
 		if venvExists {
-			err = os.RemoveAll(tmpDir)
-			if err != nil {
-				return fmt.Errorf("failed to remove temporary directory: %w", err)
-			}
+			return tmpDir, nil
 		}
 
-	} else {
-		utils.Println("valet-sh runtime: already up to date\n")
+		return "", nil
 	}
 
-	return nil
+	utils.Println("valet-sh runtime: already up to date\n")
+
+	return "", nil
 }
 
 func UpdateDependencies() error {

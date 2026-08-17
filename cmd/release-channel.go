@@ -118,7 +118,9 @@ func useStableChannel() error {
 	}
 	utils.Println("\nSuccessfully switched to stable channel\n")
 
-	return runUpdate()
+	venvBackupPath, err := runUpdate()
+	cleanupVenvBackup(venvBackupPath)
+	return err
 }
 
 func use3xChannel() error {
@@ -144,32 +146,47 @@ func use3xChannel() error {
 	releaseChannelFilePath := filepath.Join(constants.VshEtcPath, constants.ReleaseChannelFile)
 	previousReleaseChannel := getCurrentReleaseChannel()
 
+	snapshot, err := migration.CaptureState(constants.VshBasePath)
+	if err != nil {
+		return fmt.Errorf("failed to capture pre-migration state: %w", err)
+	}
+
 	if err := os.WriteFile(releaseChannelFilePath, []byte("3.x"), 0644); err != nil {
 		return fmt.Errorf("failed to switch to 3.x channel: %w", err)
 	}
 	utils.Printf("\nSuccessfully switched to 3.x channel\n")
 
-	if err := runUpdate(); err != nil {
-		revertReleaseChannel(releaseChannelFilePath, previousReleaseChannel)
+	venvBackupPath, err := runUpdate()
+	if err != nil {
+		rollback3xChannel(snapshot, releaseChannelFilePath, previousReleaseChannel)
 		return fmt.Errorf("failed to update after switching to 3.x channel: %w", err)
 	}
+	snapshot.VenvBackupPath = venvBackupPath
 
 	if err := migration.Cli(); err != nil {
-		revertReleaseChannel(releaseChannelFilePath, previousReleaseChannel)
+		rollback3xChannel(snapshot, releaseChannelFilePath, previousReleaseChannel)
 		return fmt.Errorf("failed to migrate CLI after switching to 3.x channel: %w", err)
 	}
 
 	if err := migration.RunInstall(migrationConfirmed); err != nil {
+		rollback3xChannel(snapshot, releaseChannelFilePath, previousReleaseChannel)
 		return fmt.Errorf("failed to run install on the new valet.sh CLI: %w", err)
 	}
+
+	cleanupVenvBackup(snapshot.VenvBackupPath)
 
 	return nil
 }
 
-func revertReleaseChannel(releaseChannelFilePath string, previousReleaseChannel string) {
-	if err := os.WriteFile(releaseChannelFilePath, []byte(previousReleaseChannel), 0644); err != nil {
-		utils.Printf("warning: failed to restore previous release channel %q: %s\n", previousReleaseChannel, err.Error())
+func rollback3xChannel(snapshot *migration.Snapshot, releaseChannelFilePath string, previousReleaseChannel string) {
+	utils.Println("Rolling back 3.x migration to the previous state")
+	if errs := migration.Rollback(snapshot, releaseChannelFilePath, previousReleaseChannel); len(errs) > 0 {
+		for _, err := range errs {
+			utils.Printf("warning: %s\n", err.Error())
+		}
+		return
 	}
+	utils.Println("Successfully rolled back to the previous state")
 }
 
 func useNextChannel() error {
@@ -187,5 +204,7 @@ func useNextChannel() error {
 
 	utils.Println("\nSuccessfully switched to next channel\n")
 
-	return runUpdate()
+	venvBackupPath, err := runUpdate()
+	cleanupVenvBackup(venvBackupPath)
+	return err
 }

@@ -114,7 +114,9 @@ func setupLinux(vshUser, vshGroup string) error {
 			return err
 		}
 
-		if err := runUpdate(); err != nil {
+		venvBackupPath, err := runUpdate()
+		cleanupVenvBackup(venvBackupPath)
+		if err != nil {
 			return err
 		}
 
@@ -175,7 +177,9 @@ func setupMacOS(vshUser, vshGroup, homebrewPrefix string, isMacARM bool) error {
 			return err
 		}
 
-		if err := runUpdate(); err != nil {
+		venvBackupPath, err := runUpdate()
+		cleanupVenvBackup(venvBackupPath)
+		if err != nil {
 			return err
 		}
 

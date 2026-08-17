@@ -30,6 +30,16 @@ func CheckoutBranch(dir, branch string) error {
 	return cmd.Run()
 }
 
+func GetCurrentCommit(dir string) (string, error) {
+	cmd := exec.Command("git", "rev-parse", "HEAD")
+	cmd.Dir = dir
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
 func PullLatest(dir string) error {
 	cmd := exec.Command("git", "pull", "--quiet")
 	cmd.Dir = dir
