@@ -45,12 +45,7 @@ func Cli() error {
 func RunInstall(migrationConfirmed bool) error {
 	utils.Println("Running install on the valet.sh Go-CLI")
 
-	var env []string
-	if migrationConfirmed {
-		env = []string{"VALET_MIGRATE=1"}
-	}
-
-	if err := utils.RunInteractiveCommandWithEnv(constants.VshCliBinaryPath, []string{"install"}, env); err != nil {
+	if err := utils.RunInteractiveCommandWithEnv(constants.VshCliBinaryPath, []string{"install"}, nil); err != nil {
 		return fmt.Errorf("failed to run install: %w", err)
 	}
 
