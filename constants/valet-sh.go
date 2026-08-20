@@ -14,6 +14,7 @@ const (
 
 	VshServiceFile      = VshEtcPath + "/services.yml"
 	VshBundlesFile      = VshEtcPath + "/bundles.yml"
+	VshMigrationFile    = VshEtcPath + "/migration.yml"
 	VshUrl              = "https://valet.sh"
 	HomebrewPrefix      = "/usr/local"
 	VshInstallLog       = "/tmp/valet-sh-install.log"
