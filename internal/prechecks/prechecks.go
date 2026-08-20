@@ -262,6 +262,12 @@ func CheckMigration() (bool, error) {
 			return false, ErrMigrationCanceled
 		}
 
+		migrationFile, err := os.Create(constants.VshMigrationFile)
+		if err != nil {
+			return false, fmt.Errorf("failed to create migration file: %w", err)
+		}
+		defer migrationFile.Close()
+
 		return true, nil
 	}
 
