@@ -169,7 +169,7 @@ func use3xChannel() error {
 	}
 
 	if err := migration.RunInstall(migrationConfirmed); err != nil {
-		rollback3xChannel(snapshot, releaseChannelFilePath, previousReleaseChannel)
+		utils.Println("Error: The 'valet.sh install' command failed, and automatic rollback is not possible at this point.\nPlease run `valet.sh install` manually to restart the migration process.")
 		return fmt.Errorf("failed to run install on the new valet.sh CLI: %w", err)
 	}
 
